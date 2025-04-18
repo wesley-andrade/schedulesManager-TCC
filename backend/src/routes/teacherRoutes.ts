@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticate, isAdmin } from "../middlewares/authMiddleware";
-import teacherController from "../controllers/teacherController";
+import teacherController from "../controllers/teachersController";
 
 const router = Router();
 
