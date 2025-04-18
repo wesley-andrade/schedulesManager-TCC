@@ -1,6 +1,5 @@
 import { users } from "../data/mockData";
 import { Role, User } from "../types";
-import bcrypt from "bcrypt";
 
 const getAllUsers = (): Omit<User, "password">[] => {
   return users.map(({ password, ...user }) => user);
@@ -24,7 +23,7 @@ const createUser = (
     id: Math.floor(Math.random() * 9999),
     name,
     email,
-    password: bcrypt.hashSync(password, 10),
+    password,
     role
   };
   users.push(newUser);
