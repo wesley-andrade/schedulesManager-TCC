@@ -10,9 +10,11 @@ const createTeacherSchema = z.object({
 const index = (req: Request, res: Response) => {
   try {
     const teachers = teachersModel.getAllTeachers();
-    return res.status(200).json(teachers);
+    res.status(200).json(teachers);
+    return;
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao buscar professores" });
+    res.status(500).json({ error: "Erro ao buscar professores" });
+    return;
   }
 };
 
@@ -21,11 +23,14 @@ const show = (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const teacher = teachersModel.getTeacherById(id);
     if (!teacher) {
-      return res.status(404).json({ error: "Professor não encontrado" });
+      res.status(404).json({ error: "Professor não encontrado" });
+      return;
     }
-    return res.status(200).json(teacher);
+    res.status(200).json(teacher);
+    return;
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao buscar professor" });
+    res.status(500).json({ error: "Erro ao buscar professor" });
+    return;
   }
 };
 
@@ -36,19 +41,21 @@ const create = (req: Request, res: Response) => {
 
     const newTeacher = teachersModel.createTeacher(userId, phone);
     if (!newTeacher) {
-      return res
+      res
         .status(404)
         .json({ error: "Usuário não encontrado para vincular como professor" });
+      return;
     }
 
-    return res.status(201).json(newTeacher);
+    res.status(201).json(newTeacher);
+    return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ error: error.errors.map((e) => e.message) });
+      res.status(400).json({ error: error.errors.map((e) => e.message) });
+      return;
     }
-    return res.status(500).json({ error: "Erro ao cadastrar professor" });
+    res.status(500).json({ error: "Erro ao cadastrar professor" });
+    return;
   }
 };
 
@@ -59,12 +66,15 @@ const update = (req: Request, res: Response) => {
 
     const updated = teachersModel.updateTeacher(id, { phone });
     if (!updated) {
-      return res.status(404).json({ error: "Professor não encontrado" });
+      res.status(404).json({ error: "Professor não encontrado" });
+      return;
     }
 
-    return res.status(200).json(updated);
+    res.status(200).json(updated);
+    return;
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao atualizar professor" });
+    res.status(500).json({ error: "Erro ao atualizar professor" });
+    return;
   }
 };
 
@@ -74,12 +84,15 @@ const deleteTeacher = (req: Request, res: Response) => {
     const sucess = teachersModel.deleteTeacher(id);
 
     if (!sucess) {
-      return res.status(404).json({ error: "Professor não encontrado" });
+      res.status(404).json({ error: "Professor não encontrado" });
+      return;
     }
 
-    return res.status(204).send();
+    res.status(204).send();
+    return;
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao deletar professor" });
+    res.status(500).json({ error: "Erro ao deletar professor" });
+    return;
   }
 };
 

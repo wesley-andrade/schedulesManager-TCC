@@ -21,9 +21,11 @@ const updateUserSchema = z.object({
 const index = (req: Request, res: Response) => {
   try {
     const users = usersModel.getAllUsers();
-    return res.status(200).json({ users });
+    res.status(200).json({ users });
+    return;
   } catch (error) {
-    return res.status(500).json({ message: "Erro ao buscar usuários" });
+    res.status(500).json({ message: "Erro ao buscar usuários" });
+    return;
   }
 };
 
@@ -33,12 +35,15 @@ const show = (req: Request, res: Response) => {
     const user = usersModel.getUserById(Number(id));
 
     if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+      res.status(404).json({ message: "Usuário não encontrado" });
+      return;
     }
 
-    return res.status(200).json({ ...user, password: undefined });
+    res.status(200).json({ ...user, password: undefined });
+    return;
   } catch (error) {
-    return res.status(500).json({ message: "Erro ao buscar usuário" });
+    res.status(500).json({ message: "Erro ao buscar usuário" });
+    return;
   }
 };
 
@@ -48,7 +53,8 @@ const update = (req: Request, res: Response) => {
 
     const user = usersModel.getUserById(id);
     if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+      res.status(404).json({ message: "Usuário não encontrado" });
+      return;
     }
 
     const parsedData = updateUserSchema.parse(req.body);
@@ -64,14 +70,15 @@ const update = (req: Request, res: Response) => {
     };
 
     const updatedUser = usersModel.updateUser(id, updates);
-    return res.status(200).json({ ...updatedUser, password: undefined });
+    res.status(200).json({ ...updatedUser, password: undefined });
+    return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ message: error.errors.map((e) => e.message) });
+      res.status(400).json({ message: error.errors.map((e) => e.message) });
+      return;
     }
-    return res.status(500).json({ message: "Erro ao atualizar usuário" });
+    res.status(500).json({ message: "Erro ao atualizar usuário" });
+    return;
   }
 };
 
@@ -81,12 +88,15 @@ const deleteUser = (req: Request, res: Response) => {
 
     const success = usersModel.deleteUser(parseInt(id));
     if (!success) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+      res.status(404).json({ message: "Usuário não encontrado" });
+      return;
     }
 
-    return res.status(204).send();
+    res.status(204).send();
+    return;
   } catch (error) {
-    return res.status(500).json({ message: "Erro ao deletar usuário" });
+    res.status(500).json({ message: "Erro ao deletar usuário" });
+    return;
   }
 };
 

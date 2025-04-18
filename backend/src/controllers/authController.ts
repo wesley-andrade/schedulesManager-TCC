@@ -36,14 +36,15 @@ const register = (req: Request, res: Response) => {
     const hashedPassword = bcrypt.hashSync(password, 10);
     const newUser = usersModel.createUser(name, email, hashedPassword, role);
 
-    return res.status(201).json({ ...newUser, password: undefined });
+    res.status(201).json({ ...newUser, password: undefined });
+    return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ message: error.errors.map((e) => e.message) });
+      res.status(400).json({ message: error.errors.map((e) => e.message) });
+      return;
     }
-    return res.status(500).json({ message: "Erro ao registrar usuário" });
+    res.status(500).json({ message: "Erro ao registrar usuário" });
+    return;
   }
 };
 
@@ -54,28 +55,31 @@ const login = (req: Request, res: Response) => {
 
     const user = usersModel.getUserByEmail(email);
     if (!user) {
-      return res.status(401).json({ message: "Credenciais inválidas" });
+      res.status(401).json({ message: "Credenciais inválidas" });
+      return;
     }
 
     const isPasswordValid = bcrypt.compareSync(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Credenciais inválidas" });
+      res.status(401).json({ message: "Credenciais inválidas" });
+      return;
     }
 
     const payload = { id: user.id, email: user.email, role: user.role };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Login realizado com sucesso",
       token,
     });
+    return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ message: error.errors.map((e) => e.message) });
+      res.status(400).json({ message: error.errors.map((e) => e.message) });
+      return;
     }
-    return res.status(500).json({ message: "Erro ao realizar login" });
+    res.status(500).json({ message: "Erro ao realizar login" });
+    return;
   }
 };
 
@@ -84,19 +88,21 @@ const profile = (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ message: "Usuário não autenticado" });
+      res.status(401).json({ message: "Usuário não autenticado" });
+      return;
     }
 
     const user = usersModel.getUserById(userId);
     if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+      res.status(404).json({ message: "Usuário não encontrado" });
+      return;
     }
 
-    return res.status(200).json({ ...user, password: undefined });
+    res.status(200).json({ ...user, password: undefined });
+    return;
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Erro ao buscar perfil do usuário" });
+    res.status(500).json({ message: "Erro ao buscar perfil do usuário" });
+    return;
   }
 };
 
