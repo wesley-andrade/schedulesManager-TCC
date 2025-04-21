@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import usersModel from "../models/usersModel";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import dotenv from "dotenv";
+dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
