@@ -71,7 +71,7 @@ const update = (req: Request, res: Response) => {
 
     const updatedSchedule = schedulesModel.updateSchedule(id, {
       dayOfWeek: dayOfWeek ?? existingSchedule.dayOfWeek,
-      timeSlotId: timeSlotId ?? existingSchedule.timeSlot?.id, // Usa o ID do timeSlot existente
+      timeSlotId: timeSlotId ?? existingSchedule.timeSlot?.id,
     });
 
     if (!updatedSchedule) {

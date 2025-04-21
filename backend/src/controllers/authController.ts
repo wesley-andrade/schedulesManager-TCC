@@ -4,7 +4,7 @@ import usersModel from "../models/usersModel";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 
-const JWT_SECRET = process.env.JWT_SECRET || "chave_secreta_padrao";
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 const registerSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
