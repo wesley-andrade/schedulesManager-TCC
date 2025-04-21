@@ -62,7 +62,8 @@ const create = (req: Request, res: Response) => {
 const update = (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    const { phone } = req.body;
+    const parsedData = createTeacherSchema.partial().parse(req.body);
+    const { phone } = parsedData;
 
     const updated = teachersModel.updateTeacher(id, { phone });
     if (!updated) {

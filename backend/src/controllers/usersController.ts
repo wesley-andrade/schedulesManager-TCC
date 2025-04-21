@@ -57,17 +57,18 @@ const update = (req: Request, res: Response) => {
       return;
     }
 
-    const parsedData = updateUserSchema.parse(req.body);
+    const parsedData = updateUserSchema.partial().parse(req.body);
     const { name, email, password, role } = parsedData;
 
-    const hashedPassword = bcrypt.hashSync(password, 10);
-
-    const updates = {
-      name,
-      email,
-      password: hashedPassword,
-      role,
+    const updates: Partial<typeof parsedData> = {
+      name: name ?? user.name,
+      email: email ?? user.email,
+      role: role ?? user.role,
     };
+
+    if (password) {
+      updates.password = bcrypt.hashSync(password, 10);
+    }
 
     const updatedUser = usersModel.updateUser(id, updates);
     res.status(200).json({ ...updatedUser, password: undefined });
