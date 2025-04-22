@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import schedulesModel from "../models/schedulesModel";
+import timeSlotsModel from "../models/timeSlotsModel";
 
 const scheduleSchema = z.object({
   dayOfWeek: z.enum([
@@ -47,7 +48,16 @@ const create = (req: Request, res: Response) => {
     const parsedData = scheduleSchema.parse(req.body);
     const { dayOfWeek, timeSlotId } = parsedData;
 
-    const newSchedule = schedulesModel.createSchedule(dayOfWeek, timeSlotId);
+    const timeSlotExists = timeSlotsModel.getTimeSlotById(timeSlotId);
+    if (!timeSlotExists) {
+      res.status(404).json({ error: "Time slot não encontrado" });
+      return;
+    }
+
+    const newSchedule = schedulesModel.createSchedule(
+      dayOfWeek,
+      timeSlotExists.id
+    );
     res.status(201).json(newSchedule);
     return;
   } catch (error) {
@@ -66,6 +76,11 @@ const update = (req: Request, res: Response) => {
     const existingSchedule = schedulesModel.getScheduleById(id);
     if (!existingSchedule) {
       res.status(404).json({ error: "Horário não encontrado" });
+      return;
+    }
+
+    if (timeSlotId && !timeSlotsModel.getTimeSlotById(timeSlotId)) {
+      res.status(404).json({ error: "Time slot não encontrado" });
       return;
     }
 
