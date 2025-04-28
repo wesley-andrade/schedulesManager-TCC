@@ -8,6 +8,7 @@ import {
   Discipline,
   DisciplineCourse,
   DisciplineTeacher,
+  DiscplineModule,
   Module,
   Room,
   Schedule,
@@ -38,7 +39,7 @@ export let teachers: Teacher[] = [{ id: 1, userId: 1, phone: "99 999999999" }];
 
 export let courses: Course[] = [{ id: 1, name: "Medicina" }];
 
-export let module: Module[] = [{ id: 1, name: "1º Módulo", totalStudants: 60 }];
+export let module: Module[] = [{ id: 1, name: "1º Módulo", totalStudents: 60 }];
 
 export let academicPeriod: AcademicPeriod[] = [
   {
@@ -53,8 +54,15 @@ export let disciplines: Discipline[] = [
   {
     id: 1,
     name: "Anatomia",
-    moduleId: 1,
     totalHours: 60,
+  },
+];
+
+export let disciplineModule: DiscplineModule[] = [
+  {
+    id: 1,
+    disciplineId: 1,
+    moduleId: 1,
     academicPeriodId: 1,
   },
 ];
