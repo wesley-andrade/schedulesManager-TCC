@@ -48,8 +48,13 @@ export interface DisciplineTeacher {
 export interface Discipline {
   id: number;
   name: string;
-  moduleId: number;
   totalHours: number;
+}
+
+export interface DiscplineModule {
+  id: number;
+  disciplineId: number;
+  moduleId: number;
   academicPeriodId: number;
 }
 
