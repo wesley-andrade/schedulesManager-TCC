@@ -17,8 +17,15 @@ export interface Teacher {
 export interface TeacherAvailability {
   id: number;
   teacherId: number;
-  status: boolean;
   scheduleId: number;
+  status: boolean;
+  exceptionDates?: string[];
+}
+
+export interface AvailabilityExceptions {
+  id: number;
+  teacherAvailabilityId: number;
+  exceptionDate: string;
 }
 
 export interface Schedule {

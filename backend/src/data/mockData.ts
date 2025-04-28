@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 
 import {
   AcademicPeriod,
+  AvailabilityExceptions,
   ClassSchedule,
   ClassScheduleRoom,
   Course,
@@ -80,7 +81,11 @@ export let schedules: Schedule[] = [
 ];
 
 export let teacherAvailability: TeacherAvailability[] = [
-  { id: 1, teacherId: 1, status: true, scheduleId: 1 },
+  { id: 1, teacherId: 1, scheduleId: 1, status: true },
+];
+
+export let availabilityExceptions: AvailabilityExceptions[] = [
+  { id: 1, teacherAvailabilityId: 1, exceptionDate: "2023-10-02" },
 ];
 
 export let disciplineTeacher: DisciplineTeacher[] = [
