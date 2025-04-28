@@ -68,7 +68,7 @@ export interface AcademicPeriod {
 export interface Module {
   id: number;
   name: string;
-  totalStudants: number;
+  totalStudents: number;
 }
 
 export interface DisciplineCourse {
@@ -86,6 +86,13 @@ export interface ClassScheduleRoom {
   id: number;
   classScheduleId: number;
   roomId: number;
+}
+
+export interface AcademicPeriod {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
 }
 
 export interface Room {
