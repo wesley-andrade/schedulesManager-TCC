@@ -103,5 +103,5 @@ export default {
   show,
   create,
   update,
-  deleteAcademicPeriod,
+  delete: deleteAcademicPeriod,
 };
