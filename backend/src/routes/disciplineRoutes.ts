@@ -8,3 +8,5 @@ router.get("/:id", authenticate, isAdmin, disciplineController.show);
 router.post("/", authenticate, isAdmin, disciplineController.create);
 router.put("/:id", authenticate, isAdmin, disciplineController.update);
 router.delete("/:id", authenticate, isAdmin, disciplineController.delete);
+
+export default router;

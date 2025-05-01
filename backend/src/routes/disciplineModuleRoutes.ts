@@ -6,3 +6,5 @@ const router = Router();
 router.get("/", authenticate, disciplineModuleController.index);
 router.get("/:id", authenticate, disciplineModuleController.show);
 router.post("/", authenticate, isAdmin, disciplineModuleController.create);
+
+export default router;

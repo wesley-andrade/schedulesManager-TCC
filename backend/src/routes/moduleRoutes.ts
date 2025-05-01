@@ -7,3 +7,5 @@ router.get("/", authenticate, moduleController.index);
 router.get("/:id", authenticate, moduleController.show);
 router.post("/", authenticate, isAdmin, moduleController.create);
 router.put("/:id", authenticate, isAdmin, moduleController.update);
+
+export default router;
