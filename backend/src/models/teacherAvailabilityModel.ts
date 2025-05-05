@@ -1,7 +1,5 @@
-import e from "express";
 import { availabilityExceptions, teacherAvailability } from "../data/mockData";
 import { TeacherAvailability } from "../types";
-import { get } from "http";
 
 const getAllTeacherAvailability = (): TeacherAvailability[] => {
   return teacherAvailability.map((avaivability) => ({
