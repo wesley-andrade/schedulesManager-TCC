@@ -6,11 +6,11 @@ const getAllUsers = (): Omit<User, "password">[] => {
 };
 
 const getUserById = (id: number): User | undefined => {
-  return users.find(user => user.id === id);
+  return users.find((user) => user.id === id);
 };
 
 const getUserByEmail = (email: string): User | undefined => {
-  return users.find(user => user.email === email);
+  return users.find((user) => user.email === email);
 };
 
 const createUser = (
@@ -24,7 +24,7 @@ const createUser = (
     name,
     email,
     password,
-    role
+    role,
   };
   users.push(newUser);
   return newUser;
@@ -34,7 +34,7 @@ const updateUser = (
   id: number,
   updates: Partial<Omit<User, "id">>
 ): User | undefined => {
-  const index = users.findIndex(user => user.id === id);
+  const index = users.findIndex((user) => user.id === id);
   if (index === -1) return undefined;
 
   users[index] = { ...users[index], ...updates };
@@ -42,7 +42,7 @@ const updateUser = (
 };
 
 const deleteUser = (id: number): boolean => {
-  const index = users.findIndex(user => user.id === id);
+  const index = users.findIndex((user) => user.id === id);
   if (index === -1) return false;
 
   users.splice(index, 1);
@@ -55,5 +55,5 @@ export default {
   getUserByEmail,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
 };

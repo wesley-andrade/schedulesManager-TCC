@@ -1,12 +1,12 @@
 import { AcademicPeriod } from "../types";
-import { academicPeriod } from "../data/mockData";
+import { academicPeriods } from "../data/mockData";
 
 const getAllAcademicPeriods = (): AcademicPeriod[] => {
-  return academicPeriod;
+  return academicPeriods;
 };
 
 const getAcademicPeriodById = (id: number): AcademicPeriod | undefined => {
-  return academicPeriod.find((ap) => ap.id === id);
+  return academicPeriods.find((ap) => ap.id === id);
 };
 
 const createAcademicPeriod = (
@@ -20,7 +20,7 @@ const createAcademicPeriod = (
     startDate,
     endDate,
   };
-  academicPeriod.push(newAcademicPeriod);
+  academicPeriods.push(newAcademicPeriod);
   return newAcademicPeriod;
 };
 
@@ -28,18 +28,18 @@ const updateAcademicPeriod = (
   id: number,
   updates: Partial<Omit<AcademicPeriod, "id">>
 ): AcademicPeriod | undefined => {
-  const index = academicPeriod.findIndex((ap) => ap.id === id);
+  const index = academicPeriods.findIndex((ap) => ap.id === id);
   if (index === -1) return undefined;
 
-  academicPeriod[index] = { ...academicPeriod[index], ...updates };
-  return academicPeriod[index];
+  academicPeriods[index] = { ...academicPeriods[index], ...updates };
+  return academicPeriods[index];
 };
 
 const deleteAcademicPeriod = (id: number): boolean => {
-  const index = academicPeriod.findIndex((ap) => ap.id === id);
+  const index = academicPeriods.findIndex((ap) => ap.id === id);
   if (index === -1) return false;
 
-  academicPeriod.splice(index, 1);
+  academicPeriods.splice(index, 1);
   return true;
 };
 

@@ -7,6 +7,7 @@ import scheduleRoutes from "./scheduleRoutes";
 import courseRoutes from "./courseRoutes";
 import teacherAvailabilityRoutes from "./teacherAvailabilityRoutes";
 import disciplineTeacherRoutes from "./disciplineTeacherRoutes";
+import classScheduleRoutes from "./classScheduleRoutes";
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use("/schedules", scheduleRoutes);
 router.use("/courses", courseRoutes);
 router.use("/teacher-availability", teacherAvailabilityRoutes);
 router.use("/discipline-teachers", disciplineTeacherRoutes);
+router.use("/class-schedules", classScheduleRoutes);
 
 export default router;

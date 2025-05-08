@@ -59,7 +59,10 @@ const update = (req: Request, res: Response) => {
     const moduleIndex = parseInt(req.params.id);
     const receivedParsed = moduleSchema.parse(req.body);
     const { name, totalStudents } = receivedParsed;
-    const updatedModule = moduleModel.update(moduleIndex, { name, totalStudents});
+    const updatedModule = moduleModel.update(moduleIndex, {
+      name,
+      totalStudents,
+    });
 
     if (!updatedModule) {
       res.status(400).json({ message: "Todos os campos são obrigatórios" });

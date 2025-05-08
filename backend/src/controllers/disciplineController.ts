@@ -6,6 +6,7 @@ import z from "zod";
 const disciplineSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   totalHours: z.number(),
+  requiredRoomType: z.string().min(1, "Tipo de sala é obrigatório"),
 });
 
 const index = (req: Request, res: Response) => {
@@ -40,8 +41,12 @@ const show = (req: Request, res: Response) => {
 const create = (req: Request, res: Response) => {
   try {
     const receivedParsed = disciplineSchema.parse(req.body);
-    const { name, totalHours } = receivedParsed;
-    const newDiscipline = disciplineModel.create(name, totalHours);
+    const { name, totalHours, requiredRoomType } = receivedParsed;
+    const newDiscipline = disciplineModel.create(
+      name,
+      totalHours,
+      requiredRoomType
+    );
 
     if (!newDiscipline) {
       res.status(400).json({ message: "Todos os campos são obrigatórios" });

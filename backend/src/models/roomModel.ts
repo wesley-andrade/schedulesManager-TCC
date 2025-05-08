@@ -1,13 +1,13 @@
 import { Room } from "../types";
-import { room } from "../data/mockData";
+import { rooms } from "../data/mockData";
 
 const getAllRooms = (): Room[] => {
-  const rooms: Room[] = room.map((r) => r);
-  return rooms;
+  const room: Room[] = rooms.map((r) => r);
+  return room;
 };
 
 const getRoomById = (id: number): Room | undefined => {
-  const roomFound = room.find((d) => {
+  const roomFound = rooms.find((d) => {
     d.id === id;
   });
   if (!roomFound) return undefined;
@@ -26,7 +26,7 @@ const create = (
     type,
   };
   if (!newRoom) return undefined;
-  room.push(newRoom);
+  rooms.push(newRoom);
   return newRoom;
 };
 
@@ -34,21 +34,21 @@ const update = (
   id: number,
   updates: Partial<Omit<Room, "id">>
 ): Room | undefined => {
-  const index = room.findIndex((r) => {
+  const index = rooms.findIndex((r) => {
     r.id === id;
   });
   if (index === -1) return undefined;
 
-  room[index] = { ...room[index], ...updates };
-  return room[index];
+  rooms[index] = { ...rooms[index], ...updates };
+  return rooms[index];
 };
 
 const deleteRoom = (id: number): Room | undefined => {
-  const index = room.findIndex((d) => {
+  const index = rooms.findIndex((d) => {
     d.id === id;
   });
   if (index === -1) return undefined;
-  const [deletedRoom] = room.splice(index, 1);
+  const [deletedRoom] = rooms.splice(index, 1);
   return deletedRoom;
 };
 

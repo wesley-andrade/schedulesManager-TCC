@@ -44,6 +44,7 @@ export interface ClassSchedule {
   id: number;
   scheduleId: number;
   disciplineTeacherId: number;
+  date: string;
 }
 
 export interface DisciplineTeacher {
@@ -56,6 +57,7 @@ export interface Discipline {
   id: number;
   name: string;
   totalHours: number;
+  requiredRoomType: string;
 }
 
 export interface DiscplineModule {
@@ -93,6 +95,8 @@ export interface ClassScheduleRoom {
   id: number;
   classScheduleId: number;
   roomId: number;
+  scheduleId: number;
+  date: string;
 }
 
 export interface AcademicPeriod {

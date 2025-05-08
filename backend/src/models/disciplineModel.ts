@@ -14,11 +14,12 @@ const getDisciplinebyId = (id: number): Discipline[] | undefined => {
   return discipline;
 };
 
-const create = (name: string, totalHours: number) => {
+const create = (name: string, totalHours: number, requiredRoomType: string) => {
   const newDiscipline: Discipline = {
     id: Math.floor(Math.random() * 9999),
     name,
     totalHours,
+    requiredRoomType,
   };
 
   if (!newDiscipline) {

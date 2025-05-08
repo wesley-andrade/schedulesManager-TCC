@@ -1,12 +1,12 @@
 import { Module } from "../types";
-import { module } from "../data/mockData";
+import { modules } from "../data/mockData";
 
 const getAllModules = (): Module[] => {
-  return module;
+  return modules;
 };
 
 const getModuleById = (id: number): Module | undefined => {
-  return module.find((m) => m.id === id);
+  return modules.find((m) => m.id === id);
 };
 
 const create = (name: string, totalStudents: number): Module => {
@@ -14,9 +14,8 @@ const create = (name: string, totalStudents: number): Module => {
     id: Math.floor(Math.random() * 9999),
     name,
     totalStudents,
-
   };
-  module.push(newModule);
+  modules.push(newModule);
   return newModule;
 };
 
@@ -24,18 +23,18 @@ const update = (
   id: number,
   updates: Partial<Omit<Module, "id">>
 ): Module | undefined => {
-  const index = module.findIndex((m) => m.id === id);
+  const index = modules.findIndex((m) => m.id === id);
   if (index === -1) return undefined;
 
-  module[index] = { ...module[index], ...updates };
-  return module[index];
+  modules[index] = { ...modules[index], ...updates };
+  return modules[index];
 };
 
 const deleteModule = (id: number): boolean => {
-  const index = module.findIndex((m) => m.id === id);
+  const index = modules.findIndex((m) => m.id === id);
   if (index === -1) return false;
 
-  module.splice(index, 1);
+  modules.splice(index, 1);
   return true;
 };
 
@@ -46,5 +45,3 @@ export default {
   update,
   delete: deleteModule,
 };
-
-
