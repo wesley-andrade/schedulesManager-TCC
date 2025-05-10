@@ -1,5 +1,11 @@
 export type Role = "admin" | "teacher";
 
+export type Holiday = {
+  date: string;
+  name: string;
+  type: "national" | "regional";
+};
+
 export interface User {
   id: number;
   name: string;
@@ -19,13 +25,6 @@ export interface TeacherAvailability {
   teacherId: number;
   scheduleId: number;
   status: boolean;
-  exceptionDates?: string[];
-}
-
-export interface AvailabilityExceptions {
-  id: number;
-  teacherAvailabilityId: number;
-  exceptionDate: string;
 }
 
 export interface Schedule {

@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 
 import {
   AcademicPeriod,
-  AvailabilityExceptions,
   ClassSchedule,
   ClassScheduleRoom,
   Course,
@@ -154,10 +153,6 @@ export let teacherAvailability: TeacherAvailability[] = [
   { id: 25, teacherId: 4, scheduleId: 7, status: true },
   { id: 26, teacherId: 4, scheduleId: 8, status: true },
   { id: 27, teacherId: 4, scheduleId: 9, status: true },
-];
-
-export let availabilityExceptions: AvailabilityExceptions[] = [
-  { id: 1, teacherAvailabilityId: 1, exceptionDate: "2024-04-08" },
 ];
 
 export let courses: Course[] = [{ id: 1, name: "Medicina" }];

@@ -4,7 +4,6 @@ import {
   disciplineTeacher,
   disciplines,
   teacherAvailability,
-  availabilityExceptions,
   schedules,
   academicPeriods,
   rooms,
@@ -21,16 +20,16 @@ import {
   isSameDay,
   parseISO,
   differenceInCalendarDays,
-  startOfDay,
 } from "date-fns";
 import { TimeSlot } from "../types";
+import holidayService from "../services/holidayService";
 
 const index = (req: Request, res: Response) => {
   const result = classScheduleModel.getAllClassSchedules();
   res.json(result);
 };
 
-const generateSchedules = (req: Request, res: Response) => {
+const generateSchedules = async (req: Request, res: Response) => {
   try {
     const academicPeriodId = parseInt(req.query.academicPeriodId as string);
 
@@ -46,6 +45,7 @@ const generateSchedules = (req: Request, res: Response) => {
 
     const startDate = parseISO(academicPeriod.startDate);
     const endDate = parseISO(academicPeriod.endDate);
+    const holidays = await holidayService.getHolidays(startDate, endDate);
 
     for (const dt of disciplineTeacher) {
       const discipline = disciplines.find((d) => d.id === dt.disciplineId);
@@ -66,6 +66,14 @@ const generateSchedules = (req: Request, res: Response) => {
       let lastScheduledDate: Date | null = null;
 
       while (isBefore(currentDate, endDate) && remainingHours > 0) {
+        const isHoliday = holidays.find((h) =>
+          isSameDay(parseISO(h.date), currentDate)
+        );
+        if (isHoliday) {
+          currentDate = addDays(currentDate, 1);
+          continue;
+        }
+
         const dayOfWeek = capitalize(
           currentDate.toLocaleDateString("pt-BR", { weekday: "long" })
         );
@@ -85,16 +93,6 @@ const generateSchedules = (req: Request, res: Response) => {
             (ts) => ts.id === schedule.timeSlotId
           );
           const duration = timeSlot ? calculateDuration(timeSlot) : 1;
-
-          const isException = availabilityExceptions.some(
-            (e) =>
-              e.teacherAvailabilityId === availabilityId &&
-              isSameDay(
-                startOfDay(parseISO(e.exceptionDate)),
-                startOfDay(currentDate)
-              )
-          );
-          if (isException) continue;
 
           if (
             lastScheduledDate &&
@@ -163,7 +161,7 @@ const generateSchedules = (req: Request, res: Response) => {
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const { scheduleId, date } = req.body;
@@ -195,6 +193,13 @@ const update = (req: Request, res: Response) => {
     }
 
     const dateObj = parseISO(date);
+
+    const holidays = await holidayService.getHolidays(dateObj, dateObj);
+    if (holidays.length > 0) {
+      res.status(400).json({ error: "Data em feriado" });
+      return;
+    }
+
     const modInfo = disciplineModule.find(
       (dm) => dm.disciplineId === discipline.id
     );

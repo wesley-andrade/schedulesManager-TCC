@@ -6,7 +6,6 @@ const availabilitySchema = z.object({
   teacherId: z.number(),
   scheduleId: z.number(),
   status: z.boolean(),
-  exceptionDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
 });
 
 const index = (req: Request, res: Response) => {
@@ -43,13 +42,12 @@ const show = (req: Request, res: Response) => {
 const create = (req: Request, res: Response) => {
   try {
     const parsedData = availabilitySchema.parse(req.body);
-    const { teacherId, scheduleId, status, exceptionDates } = parsedData;
+    const { teacherId, scheduleId, status } = parsedData;
 
     const newAvailability = teacherAvailabilityModel.createTeacherAvailability(
       teacherId,
       scheduleId,
-      status,
-      exceptionDates || []
+      status
     );
 
     res.status(201).json(newAvailability);
@@ -68,13 +66,12 @@ const update = (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const parsedData = availabilitySchema.partial().parse(req.body);
-    const { teacherId, scheduleId, status, exceptionDates } = parsedData;
+    const { teacherId, scheduleId, status } = parsedData;
 
     const updated = teacherAvailabilityModel.updateTeacherAvailability(id, {
       teacherId,
       scheduleId,
       status,
-      exceptionDates,
     });
     if (!updated) {
       res.status(404).json({ error: "Disponibilidade não encontrada" });
