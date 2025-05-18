@@ -7,6 +7,6 @@ const router = Router();
 router.get("/", authenticate, isAdmin, usersController.index);
 router.get("/:id", authenticate, isAdmin, usersController.show);
 router.put("/:id", authenticate, isAdmin, usersController.update);
-router.delete("/:id", authenticate, isAdmin, usersController.delete);
+router.delete("/:id", authenticate, isAdmin, usersController.remove);
 
 export default router;

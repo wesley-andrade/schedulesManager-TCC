@@ -11,7 +11,7 @@ router.post(
   isAdmin,
   classScheduleController.generateSchedules
 );
-router.put("/:id", authenticate, isAdmin, classScheduleController.update);
+// router.put("/:id", authenticate, isAdmin, classScheduleController.update);
 router.delete(
   "/:id",
   authenticate,

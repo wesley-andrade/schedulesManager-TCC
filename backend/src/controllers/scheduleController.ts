@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import schedulesModel from "../models/schedulesModel";
-import timeSlotsModel from "../models/timeSlotsModel";
+import schedulesModel from "../models/scheduleModel";
+import timeSlotModel from "../models/timeSlotModel";
 
 const scheduleSchema = z.object({
   dayOfWeek: z.enum([
@@ -11,24 +11,30 @@ const scheduleSchema = z.object({
     "Quinta-feira",
     "Sexta-feira",
   ]),
-  timeSlotId: z.number(),
+  timeSlotId: z.number({ message: "ID deve ser um número" }),
 });
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const schedules = schedulesModel.getAllSchedules();
+    const schedules = await schedulesModel.getAllSchedules();
+
     res.status(200).json(schedules);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar horários" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const show = (req: Request, res: Response) => {
+const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const schedule = schedulesModel.getScheduleById(id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválida" });
+      return;
+    }
+
+    const schedule = await schedulesModel.getScheduleById(id);
 
     if (!schedule) {
       res.status(404).json({ error: "Horário não encontrado" });
@@ -37,85 +43,84 @@ const show = (req: Request, res: Response) => {
 
     res.status(200).json(schedule);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const create = (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsedData = scheduleSchema.parse(req.body);
     const { dayOfWeek, timeSlotId } = parsedData;
 
-    const timeSlotExists = timeSlotsModel.getTimeSlotById(timeSlotId);
+    const timeSlotExists = await timeSlotModel.getTimeSlotById(timeSlotId);
     if (!timeSlotExists) {
       res.status(404).json({ error: "Time slot não encontrado" });
       return;
     }
 
-    const newSchedule = schedulesModel.createSchedule(
+    const newSchedule = await schedulesModel.createSchedule(
       dayOfWeek,
       timeSlotExists.id
     );
     res.status(201).json(newSchedule);
     return;
-  } catch (error) {
-    res.status(400).json({ error: "Erro ao criar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
 
     const parsedData = scheduleSchema.partial().parse(req.body);
     const { dayOfWeek, timeSlotId } = parsedData;
 
-    const existingSchedule = schedulesModel.getScheduleById(id);
-    if (!existingSchedule) {
+    const exist = await schedulesModel.getScheduleById(id);
+    if (!exist) {
       res.status(404).json({ error: "Horário não encontrado" });
       return;
     }
 
-    if (timeSlotId && !timeSlotsModel.getTimeSlotById(timeSlotId)) {
+    if (timeSlotId && !timeSlotModel.getTimeSlotById(timeSlotId)) {
       res.status(404).json({ error: "Time slot não encontrado" });
       return;
     }
 
-    const updatedSchedule = schedulesModel.updateSchedule(id, {
-      dayOfWeek: dayOfWeek ?? existingSchedule.dayOfWeek,
-      timeSlotId: timeSlotId ?? existingSchedule.timeSlot?.id,
+    const updatedSchedule = await schedulesModel.updateSchedule(id, {
+      dayOfWeek: dayOfWeek ?? exist.dayOfWeek,
+      timeSlotId: timeSlotId ?? exist.timeSlotId,
     });
-
-    if (!updatedSchedule) {
-      res.status(404).json({ error: "Horário não encontrado" });
-      return;
-    }
 
     res.status(200).json(updatedSchedule);
     return;
-  } catch (error) {
-    res.status(400).json({ error: "Erro ao atualizar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const deleteSchedule = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const deleted = schedulesModel.deleteSchedule(id);
-
-    if (!deleted) {
-      res.status(404).json({ error: "Horário não encontrado" });
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID iválido" });
       return;
     }
 
+    await schedulesModel.deleteSchedule(id);
+
     res.status(204).send();
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao deletar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
@@ -125,5 +130,5 @@ export default {
   show,
   create,
   update,
-  delete: deleteSchedule,
+  remove,
 };

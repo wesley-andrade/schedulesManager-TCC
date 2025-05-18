@@ -1,97 +1,131 @@
-import { Request, Response } from "express";
-import { Discipline } from "../types";
+import { NextFunction, Request, Response } from "express";
 import disciplineModel from "../models/disciplineModel";
 import z from "zod";
+import { RoomType } from "@prisma/client";
 
 const disciplineSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   totalHours: z.number(),
-  requiredRoomType: z.string().min(1, "Tipo de sala é obrigatório"),
+  requiredRoomType: z.nativeEnum(RoomType, {
+    errorMap: () => ({ message: "Tipo de sala inválida" }),
+  }),
 });
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const disciplines: Discipline[] = disciplineModel.getAllDisciplines();
-    if (!disciplines) {
-      return undefined;
-    }
+    const disciplines = await disciplineModel.getAllDisciplines();
+
     res.status(200).json(disciplines);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Não foi possível buscar as discplinas" });
+    next(err);
   }
 };
 
-const show = (req: Request, res: Response) => {
+const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const reqId = parseInt(req.params.id);
-    const discipline = disciplineModel.getDisciplinebyId(reqId);
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const discipline = await disciplineModel.getDisciplineById(id);
+
     if (!discipline) {
       res.status(404).json({ message: "Disciplina não encontrada" });
       return;
     }
+
     res.status(200).json(discipline);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Não foi possível buscar a disciplina" });
+    next(err);
     return;
   }
 };
 
-const create = (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const receivedParsed = disciplineSchema.parse(req.body);
-    const { name, totalHours, requiredRoomType } = receivedParsed;
-    const newDiscipline = disciplineModel.create(
+    const parsedData = disciplineSchema.parse(req.body);
+    const { name, totalHours, requiredRoomType } = parsedData;
+
+    const exist = await disciplineModel.findByName(name);
+    if (exist) {
+      res
+        .status(409)
+        .json({ message: "Já existe uma disciplina com esse nome" });
+      return;
+    }
+
+    const newDiscipline = await disciplineModel.createDiscipline(
       name,
       totalHours,
       requiredRoomType
     );
 
-    if (!newDiscipline) {
-      res.status(400).json({ message: "Todos os campos são obrigatórios" });
-      return;
-    }
-    res.status(202).json(newDiscipline);
+    res.status(201).json(newDiscipline);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Erro ao criar disciplina" });
+    next(err);
     return;
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const disciplineIndex = parseInt(req.params.id);
-    const updatedData = disciplineSchema.parse(req.body);
-    const { name, totalHours } = updatedData;
-    const updatedDiscipline = disciplineModel.update(disciplineIndex, {
-      name,
-      totalHours,
-    });
-    if (!updatedDiscipline) {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const parsedData = disciplineSchema.partial().parse(req.body);
+    const { name, totalHours, requiredRoomType } = parsedData;
+
+    const exist = await disciplineModel.getDisciplineById(id);
+    if (!exist) {
       res.status(404).json({ message: "Disciplina não encontrada" });
       return;
     }
+
+    if (name) {
+      const existName = await disciplineModel.findByName(name);
+      if (existName && existName.id !== id) {
+        res
+          .status(409)
+          .json({ message: "Já existe um disciplina com esse nome" });
+        return;
+      }
+    }
+
+    const updatedDiscipline = await disciplineModel.updateDiscipline(id, {
+      name,
+      totalHours,
+      requiredRoomType,
+    });
+
     res.status(200).json(updatedDiscipline);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Erro ao atualizar disciplina" });
+    next(err);
     return;
   }
 };
 
-const deleteDiscipline = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const disciplineId = parseInt(req.params.id);
-    const deleted = disciplineModel.delete(disciplineId);
-    if (!deleted) {
-      res.status(404).json({ message: "Disciplina não encontrada" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
+
+    await disciplineModel.deleteDiscipline(id);
+
     res.status(204).send();
   } catch (err) {
-    res.status(500).json({ message: "Erro ao deletar disciplina" });
+    next(err);
     return;
   }
 };
@@ -101,5 +135,5 @@ export default {
   show,
   create,
   update,
-  delete: deleteDiscipline,
+  remove,
 };

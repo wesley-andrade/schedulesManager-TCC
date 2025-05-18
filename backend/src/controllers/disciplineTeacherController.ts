@@ -1,66 +1,78 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import disciplineTeacherModel from "../models/disciplineTeacherModel";
+import teacherModel from "../models/teacherModel";
+import disciplineModel from "../models/disciplineModel";
 
 const disciplineTeacherSchema = z.object({
-  teacherId: z
-    .number()
-    .int()
-    .positive("ID do professor deve ser um número positivo"),
-  disciplineId: z
-    .number()
-    .int()
-    .positive("ID da disciplina deve ser um número positivo"),
+  teacherId: z.number({
+    message: "ID deve ser um número",
+  }),
+  disciplineId: z.number({
+    message: "ID deve ser um número",
+  }),
 });
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const disciplineTeachers =
-      disciplineTeacherModel.getAllDisciplineTeachers();
+      await disciplineTeacherModel.getAllDisciplineTeachers();
+
     res.status(200).json(disciplineTeachers);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar professores e disciplinas" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const create = (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsedData = disciplineTeacherSchema.parse(req.body);
     const { teacherId, disciplineId } = parsedData;
 
-    const newDisciplineTeacher = disciplineTeacherModel.createDisciplineTeacher(
-      disciplineId,
-      teacherId
-    );
+    const [teacherExist, disciplineExist] = await Promise.all([
+      teacherModel.getTeacherById(teacherId),
+      disciplineModel.getDisciplineById(disciplineId),
+    ]);
+
+    if (!teacherExist) {
+      res.status(404).json({ message: "Professor não encontrado" });
+      return;
+    }
+
+    if (!disciplineExist) {
+      res.status(404).json({ message: "Disciplina não encontrada" });
+    }
+
+    const newDisciplineTeacher =
+      await disciplineTeacherModel.createDisciplineTeacher(
+        disciplineId,
+        teacherId
+      );
 
     res.status(201).json(newDisciplineTeacher);
     return;
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors });
-      return;
-    }
-    res.status(500).json({ error: "Erro ao criar professor e disciplina" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const deleteDisciplineTeacher = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const deleted = disciplineTeacherModel.deleteDisciplineTeacher(id);
-
-    if (!deleted) {
-      res.status(404).json({ error: "Professor e disciplina não encontrados" });
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
 
+    await disciplineTeacherModel.deleteDisciplineTeacher(id);
+
     res.status(204).send();
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao deletar professor e disciplina" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
@@ -68,5 +80,5 @@ const deleteDisciplineTeacher = (req: Request, res: Response) => {
 export default {
   index,
   create,
-  deleteDisciplineTeacher,
+  remove,
 };

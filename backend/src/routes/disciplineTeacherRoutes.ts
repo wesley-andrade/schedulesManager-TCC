@@ -10,7 +10,7 @@ router.delete(
   "/:id",
   authenticate,
   isAdmin,
-  disciplineTeacherController.deleteDisciplineTeacher
+  disciplineTeacherController.remove
 );
 
 export default router;

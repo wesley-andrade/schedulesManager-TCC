@@ -1,98 +1,110 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import teachersModel from "../models/teachersModel";
+import teachersModel from "../models/teacherModel";
+import userModel from "../models/userModel";
 
 const createTeacherSchema = z.object({
-  userId: z.number(),
+  userId: z.number({ message: "ID deve ser um número" }),
   phone: z.string().length(11, "Número de telefone inválido"),
 });
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const teachers = teachersModel.getAllTeachers();
+    const teachers = await teachersModel.getAllTeachers();
+
     res.status(200).json(teachers);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar professores" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const show = (req: Request, res: Response) => {
+const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const teacher = teachersModel.getTeacherById(id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const teacher = await teachersModel.getTeacherById(id);
+
     if (!teacher) {
       res.status(404).json({ error: "Professor não encontrado" });
       return;
     }
+
     res.status(200).json(teacher);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar professor" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const create = (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsedData = createTeacherSchema.parse(req.body);
     const { userId, phone } = parsedData;
 
-    const newTeacher = teachersModel.createTeacher(userId, phone);
-    if (!newTeacher) {
-      res
-        .status(404)
-        .json({ error: "Usuário não encontrado para vincular como professor" });
+    const userExist = await userModel.getUserById(userId);
+    if (!userExist) {
+      res.status(404).json({ message: "Usuário não encontrado" });
       return;
     }
+
+    const newTeacher = await teachersModel.createTeacher(userId, phone);
 
     res.status(201).json(newTeacher);
     return;
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors.map((e) => e.message) });
-      return;
-    }
-    res.status(500).json({ error: "Erro ao cadastrar professor" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
     const parsedData = createTeacherSchema.partial().parse(req.body);
     const { phone } = parsedData;
 
-    const updated = teachersModel.updateTeacher(id, { phone });
-    if (!updated) {
+    const exist = await teachersModel.getTeacherById(id);
+    if (!exist) {
       res.status(404).json({ error: "Professor não encontrado" });
       return;
     }
 
+    const updated = await teachersModel.updateTeacher(id, { phone });
+
     res.status(200).json(updated);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar professor" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const deleteTeacher = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const sucess = teachersModel.deleteTeacher(id);
-
-    if (!sucess) {
-      res.status(404).json({ error: "Professor não encontrado" });
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
 
+    await teachersModel.deleteTeacher(id);
+
     res.status(204).send();
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao deletar professor" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
@@ -102,5 +114,5 @@ export default {
   show,
   create,
   update,
-  delete: deleteTeacher,
+  remove,
 };

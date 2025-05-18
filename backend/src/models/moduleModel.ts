@@ -1,47 +1,42 @@
-import { Module } from "../types";
-import { modules } from "../data/mockData";
+import prisma from "./prisma";
 
-const getAllModules = (): Module[] => {
-  return modules;
+const getAllModules = async () => {
+  return await prisma.module.findMany();
 };
 
-const getModuleById = (id: number): Module | undefined => {
-  return modules.find((m) => m.id === id);
+const getModuleById = async (id: number) => {
+  return await prisma.module.findUnique({
+    where: { id },
+  });
 };
 
-const create = (name: string, totalStudents: number): Module => {
-  const newModule: Module = {
-    id: Math.floor(Math.random() * 9999),
-    name,
-    totalStudents,
-  };
-  modules.push(newModule);
-  return newModule;
+const createModule = async (name: string, totalStudents: number) => {
+  return await prisma.module.create({
+    data: { name, totalStudents },
+  });
 };
 
-const update = (
+const updateModule = async (
   id: number,
-  updates: Partial<Omit<Module, "id">>
-): Module | undefined => {
-  const index = modules.findIndex((m) => m.id === id);
-  if (index === -1) return undefined;
-
-  modules[index] = { ...modules[index], ...updates };
-  return modules[index];
+  updates: { name?: string; totalStudents?: number }
+) => {
+  return await prisma.module.update({
+    where: { id },
+    data: updates,
+  });
 };
 
-const deleteModule = (id: number): boolean => {
-  const index = modules.findIndex((m) => m.id === id);
-  if (index === -1) return false;
-
-  modules.splice(index, 1);
+const deleteModule = async (id: number) => {
+  await prisma.module.delete({
+    where: { id },
+  });
   return true;
 };
 
 export default {
   getAllModules,
   getModuleById,
-  create,
-  update,
-  delete: deleteModule,
+  createModule,
+  updateModule,
+  deleteModule,
 };

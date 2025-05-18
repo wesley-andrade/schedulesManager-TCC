@@ -1,57 +1,54 @@
-import { Discipline } from "../types";
-import { disciplines } from "../data/mockData";
+import prisma from "./prisma";
+import { RoomType } from "@prisma/client";
 
-const getAllDisciplines = (): Discipline[] => {
-  return disciplines;
+const getAllDisciplines = async () => {
+  return await prisma.discipline.findMany();
 };
 
-const getDisciplinebyId = (id: number): Discipline[] | undefined => {
-  if (!id) return undefined;
-  const discipline = disciplines.filter((dc) => {
-    dc.id === id;
+const getDisciplineById = async (id: number) => {
+  return await prisma.discipline.findUnique({
+    where: { id },
   });
-
-  return discipline;
 };
 
-const create = (name: string, totalHours: number, requiredRoomType: string) => {
-  const newDiscipline: Discipline = {
-    id: Math.floor(Math.random() * 9999),
-    name,
-    totalHours,
-    requiredRoomType,
-  };
-
-  if (!newDiscipline) {
-    return undefined;
-  }
-
-  disciplines.push(newDiscipline);
-  return newDiscipline;
+const findByName = async (name: string) => {
+  return await prisma.discipline.findFirst({ where: { name } });
 };
 
-const update = (
+const createDiscipline = async (
+  name: string,
+  totalHours: number,
+  requiredRoomType: RoomType
+) => {
+  return await prisma.discipline.create({
+    data: { name, totalHours, requiredRoomType },
+  });
+};
+
+const updateDiscipline = async (
   id: number,
-  updates: Partial<Omit<Discipline, "id">>
-): Discipline | undefined => {
-  const index = disciplines.findIndex((d) => d.id === id);
-  if (index === -1) return undefined;
-
-  disciplines[index] = { ...disciplines[index], ...updates };
-  return disciplines[index];
+  updates: Partial<{
+    name: string;
+    totalHours: number;
+    requiredRoomType: RoomType;
+  }>
+) => {
+  return await prisma.discipline.update({
+    where: { id },
+    data: updates,
+  });
 };
 
-const deleteDiscipline = (id: number): boolean => {
-  const index = disciplines.findIndex((d) => d.id === id);
-  if (index === -1) return false;
-  disciplines.splice(index, 1);
+const deleteDiscipline = async (id: number) => {
+  await prisma.discipline.delete({ where: { id } });
   return true;
 };
 
 export default {
   getAllDisciplines,
-  getDisciplinebyId,
-  create,
-  update,
-  delete: deleteDiscipline,
+  getDisciplineById,
+  findByName,
+  createDiscipline,
+  updateDiscipline,
+  deleteDiscipline,
 };

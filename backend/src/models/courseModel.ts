@@ -1,45 +1,45 @@
-import { Course } from "../types";
-import { courses } from "../data/mockData";
+import prisma from "./prisma";
 
-const getAllCourses = (): Course[] => {
-  return courses;
+const getAllCourses = async () => {
+  return await prisma.course.findMany();
 };
 
-const getCourseById = (id: number): Course | undefined => {
-  return courses.find((course) => course.id === id);
+const getCourseById = async (id: number) => {
+  return await prisma.course.findUnique({
+    where: { id },
+  });
 };
 
-const createCourse = (name: string): Course => {
-  const newCourse: Course = {
-    id: Math.floor(Math.random() * 9999),
-    name,
-  };
-  courses.push(newCourse);
-  return newCourse;
+const findByName = async (name: string) => {
+  return await prisma.course.findFirst({
+    where: { name },
+  });
 };
 
-const updateCourse = (
-  id: number,
-  updates: Partial<Omit<Course, "id">>
-): Course | undefined => {
-  const index = courses.findIndex((course) => course.id === id);
-  if (index === -1) return undefined;
-
-  courses[index] = { ...courses[index], ...updates };
-  return courses[index];
+const createCourse = async (name: string) => {
+  return await prisma.course.create({
+    data: { name },
+  });
 };
 
-const deleteCourse = (id: number): boolean => {
-  const index = courses.findIndex((course) => course.id === id);
-  if (index === -1) return false;
+const updateCourse = async (id: number, updates: { name: string }) => {
+  return await prisma.course.update({
+    where: { id },
+    data: updates,
+  });
+};
 
-  courses.splice(index, 1);
+const deleteCourse = async (id: number) => {
+  await prisma.course.delete({
+    where: { id },
+  });
   return true;
 };
 
 export default {
   getAllCourses,
   getCourseById,
+  findByName,
   createCourse,
   updateCourse,
   deleteCourse,

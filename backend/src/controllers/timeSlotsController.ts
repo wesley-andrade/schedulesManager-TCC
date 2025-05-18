@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import timeSlotsModel from "../models/timeSlotsModel";
+import { NextFunction, Request, Response } from "express";
+import timeSlotModel from "../models/timeSlotModel";
 import { z } from "zod";
 
 export const timeSlotSchema = z
@@ -21,21 +21,27 @@ export const timeSlotSchema = z
     }
   );
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const timeSlots = timeSlotsModel.getAllTimeSlots();
+    const timeSlots = await timeSlotModel.getAllTimeSlots();
+
     res.status(200).json(timeSlots);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar horários" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const show = (req: Request, res: Response) => {
+const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const timeSlot = timeSlotsModel.getTimeSlotById(id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const timeSlot = await timeSlotModel.getTimeSlotById(id);
 
     if (!timeSlot) {
       res.status(404).json({ error: "Horário não encontrado" });
@@ -44,68 +50,71 @@ const show = (req: Request, res: Response) => {
 
     res.status(200).json(timeSlot);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const create = (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsedData = timeSlotSchema.parse(req.body);
     const { startTime, endTime } = parsedData;
 
-    const newTimeSlot = timeSlotsModel.createTimeSlot(startTime, endTime);
+    const newTimeSlot = await timeSlotModel.createTimeSlot(startTime, endTime);
+
     res.status(201).json(newTimeSlot);
     return;
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors.map((e) => e.message) });
-      return;
-    }
-    res.status(500).json({ error: "Erro ao criar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
     const parsedData = timeSlotSchema.parse(req.body);
     const { startTime, endTime } = parsedData;
 
-    const updatedTimeSlot = timeSlotsModel.updateTimeSlot(id, {
+    const exist = await timeSlotModel.getTimeSlotById(id);
+    if (!exist) {
+      res.status(404).json({ error: "Horário não encontrado" });
+      return;
+    }
+
+    const updatedTimeSlot = await timeSlotModel.updateTimeSlot(id, {
       startTime,
       endTime,
     });
 
-    if (!updatedTimeSlot) {
-      res.status(404).json({ error: "Horário não encontrado" });
-      return;
-    }
-
     res.status(200).json(updatedTimeSlot);
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const deleteTimeSlot = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const success = timeSlotsModel.deleteTimeSlot(id);
-
-    if (!success) {
-      res.status(404).json({ error: "Horário não encontrado" });
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
 
+    await timeSlotModel.deleteTimeSlot(id);
+
     res.status(204).send();
     return;
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao deletar horário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
@@ -115,5 +124,5 @@ export default {
   show,
   create,
   update,
-  delete: deleteTimeSlot,
+  remove,
 };

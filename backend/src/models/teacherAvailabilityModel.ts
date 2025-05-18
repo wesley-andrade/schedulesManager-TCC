@@ -1,55 +1,32 @@
-import { teacherAvailability } from "../data/mockData";
-import { TeacherAvailability } from "../types";
+import prisma from "./prisma";
 
-const getAllTeacherAvailability = (): TeacherAvailability[] => {
-  return [...teacherAvailability];
+const getAllTeacherAvailability = async () => {
+  return await prisma.teacherAvailability.findMany();
 };
 
-const getTeacherAvailabilityById = (
-  id: number
-): TeacherAvailability | undefined => {
-  return teacherAvailability.find((availability) => availability.id === id);
+const getTeacherAvailabilityById = async (id: number) => {
+  return await prisma.teacherAvailability.findUnique({ where: { id } });
 };
 
-const createTeacherAvailability = (
+const createTeacherAvailability = async (
   teacherId: number,
   scheduleId: number,
   status: boolean
-): TeacherAvailability => {
-  const newAvailability: TeacherAvailability = {
-    id: Math.floor(Math.random() * 9999),
-    teacherId,
-    scheduleId,
-    status,
-  };
-  teacherAvailability.push(newAvailability);
-  return newAvailability;
+) => {
+  return await prisma.teacherAvailability.create({
+    data: { teacherId, scheduleId, status },
+  });
 };
 
-const updateTeacherAvailability = (
+const updateTeacherAvailability = async (
   id: number,
-  updates: Partial<Omit<TeacherAvailability, "id">>
-): TeacherAvailability | undefined => {
-  const index = teacherAvailability.findIndex(
-    (availability) => availability.id === id
-  );
-  if (index === -1) return undefined;
-
-  teacherAvailability[index] = {
-    ...teacherAvailability[index],
-    ...updates,
-  };
-
-  return teacherAvailability[index];
+  updates: Partial<{ teacherId: number; scheduleId: number; status: boolean }>
+) => {
+  return prisma.teacherAvailability.update({ where: { id }, data: updates });
 };
 
-const deleteTeacherAvailability = (id: number): boolean => {
-  const index = teacherAvailability.findIndex(
-    (availability) => availability.id === id
-  );
-  if (index === -1) return false;
-
-  teacherAvailability.splice(index, 1);
+const deleteTeacherAvailability = async (id: number) => {
+  await prisma.teacherAvailability.delete({ where: { id } });
   return true;
 };
 

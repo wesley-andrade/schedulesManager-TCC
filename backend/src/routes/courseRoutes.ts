@@ -3,10 +3,11 @@ import { authenticate, isAdmin } from "../middlewares/authMiddleware";
 import courseController from "../controllers/courseController";
 
 const router = Router();
+
 router.get("/", authenticate, courseController.index);
 router.get("/:id", authenticate, courseController.show);
 router.post("/", authenticate, isAdmin, courseController.create);
 router.put("/:id", authenticate, isAdmin, courseController.update);
-router.delete("/:id", authenticate, isAdmin, courseController.delete);
+router.delete("/:id", authenticate, isAdmin, courseController.remove);
 
 export default router;

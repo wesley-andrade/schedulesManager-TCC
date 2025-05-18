@@ -12,7 +12,7 @@ router.delete(
   "/:id",
   authenticate,
   isAdmin,
-  teacherAvailabilityController.delete
+  teacherAvailabilityController.remove
 );
 
 export default router;

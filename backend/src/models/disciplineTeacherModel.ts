@@ -1,31 +1,20 @@
-import { disciplineTeacher } from "../data/mockData";
-import { DisciplineTeacher } from "../types";
+import prisma from "./prisma";
 
-const getAllDisciplineTeachers = (): DisciplineTeacher[] => {
-  return disciplineTeacher;
+const getAllDisciplineTeachers = async () => {
+  return await prisma.disciplineTeacher.findMany();
 };
 
-const createDisciplineTeacher = (
+const createDisciplineTeacher = async (
   disciplineId: number,
   teacherId: number
-): DisciplineTeacher => {
-  const newDisciplineTeacher: DisciplineTeacher = {
-    id: Math.floor(Math.random() * 9999),
-    disciplineId,
-    teacherId,
-  };
-
-  disciplineTeacher.push(newDisciplineTeacher);
-  return newDisciplineTeacher;
+) => {
+  return await prisma.disciplineTeacher.create({
+    data: { disciplineId, teacherId },
+  });
 };
 
-const deleteDisciplineTeacher = (id: number): boolean => {
-  const index = disciplineTeacher.findIndex(
-    (disciplineTeacher) => disciplineTeacher.id === id
-  );
-  if (index === -1) return false;
-
-  disciplineTeacher.splice(index, 1);
+const deleteDisciplineTeacher = async (id: number) => {
+  await prisma.disciplineTeacher.delete({ where: { id } });
   return true;
 };
 

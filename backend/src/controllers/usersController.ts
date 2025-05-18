@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
-import { Request, Response } from "express";
-import usersModel from "../models/usersModel";
+import { NextFunction, Request, Response } from "express";
+import userModel from "../models/userModel";
 import { z } from "zod";
+import { Role } from "@prisma/client";
 
 const updateUserSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -13,26 +14,32 @@ const updateUserSchema = z.object({
     .regex(/[a-z]/, "Deve conter pelo menos uma letra minúscula")
     .regex(/[0-9]/, "Deve conter pelo menos um número")
     .regex(/[\W_]/, "Deve conter pelo menos um caractere especial"),
-  role: z.enum(["admin", "teacher"], {
+  role: z.nativeEnum(Role, {
     errorMap: () => ({ message: "Função inválida: 'admin' ou 'teacher'" }),
   }),
 });
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = usersModel.getAllUsers();
+    const users = await userModel.getAllUsers();
+
     res.status(200).json({ users });
     return;
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar usuários" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const show = (req: Request, res: Response) => {
+const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id;
-    const user = usersModel.getUserById(Number(id));
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const user = await userModel.getUserById(Number(id));
 
     if (!user) {
       res.status(404).json({ message: "Usuário não encontrado" });
@@ -41,17 +48,21 @@ const show = (req: Request, res: Response) => {
 
     res.status(200).json({ ...user, password: undefined });
     return;
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar usuário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
 
-    const user = usersModel.getUserById(id);
+    const user = await userModel.getUserById(id);
     if (!user) {
       res.status(404).json({ message: "Usuário não encontrado" });
       return;
@@ -70,33 +81,30 @@ const update = (req: Request, res: Response) => {
       updates.password = bcrypt.hashSync(password, 10);
     }
 
-    const updatedUser = usersModel.updateUser(id, updates);
+    const updatedUser = await userModel.updateUser(id, updates);
+
     res.status(200).json({ ...updatedUser, password: undefined });
     return;
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ message: error.errors.map((e) => e.message) });
-      return;
-    }
-    res.status(500).json({ message: "Erro ao atualizar usuário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const deleteUser = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id;
-
-    const success = usersModel.deleteUser(parseInt(id));
-    if (!success) {
-      res.status(404).json({ message: "Usuário não encontrado" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
 
+    await userModel.deleteUser(id);
+
     res.status(204).send();
     return;
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao deletar usuário" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
@@ -105,5 +113,5 @@ export default {
   index,
   show,
   update,
-  delete: deleteUser,
+  remove,
 };

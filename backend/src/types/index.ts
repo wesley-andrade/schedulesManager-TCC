@@ -6,6 +6,14 @@ export type Holiday = {
   type: "national" | "regional";
 };
 
+export interface ValidationErrorDetail {
+  field: string;
+  errorType: string;
+  message: string;
+  expected?: string;
+  received?: string;
+}
+
 export interface User {
   id: number;
   name: string;

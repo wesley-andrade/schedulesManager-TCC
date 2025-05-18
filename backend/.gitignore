@@ -133,7 +133,6 @@ dist
 build
 
 # Prisma
-/prisma/migrations
 /prisma/.env
 /prisma/*.dev.db
 /prisma/*.test.db

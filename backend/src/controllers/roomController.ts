@@ -1,6 +1,6 @@
+import { RoomType } from "@prisma/client";
 import roomModel from "../models/roomModel";
-import { Room } from "../types";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
 const roomSchema = z.object({
@@ -8,91 +8,105 @@ const roomSchema = z.object({
   seatsAmount: z
     .number({ required_error: "Uma capacidade total é obrigatória" })
     .positive({ message: "O número deve ser maior que 0" }),
-  type: z.string().min(1, { message: "O tipo da sala é obrigatório" }),
+  type: z.nativeEnum(RoomType, {
+    errorMap: () => ({ message: "Tipo de sala invalida" }),
+  }),
 });
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const roomsList: Room[] = roomModel.getAllRooms();
-    if (!roomsList) {
-      res.status(404).json({ message: "Nenhuma sala foi encontrada" });
-      return;
-    }
-    res.status(200).json(roomsList);
+    const rooms = await roomModel.getAllRooms();
+
+    res.status(200).json(rooms);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Não foi possível buscar as salas" });
+    next(err);
     return;
   }
 };
 
-const show = (req: Request, res: Response) => {
+const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const reqId = parseInt(req.params.id);
-    const room = roomModel.getRoomById(reqId);
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const room = await roomModel.getRoomById(id);
+
     if (!room) {
       res.status(404).json({ message: "Sala não encontrada" });
       return;
     }
+
     res.status(200).json(room);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Não foi possível buscar a sala" });
+    next(err);
     return;
   }
 };
 
-const create = (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const receivedParsed = roomSchema.parse(req.body);
-    const { name, seatsAmount, type } = receivedParsed;
-    const newRoom = roomModel.create(name, seatsAmount, type);
-    if (!newRoom) {
-      res.status(400).json({ message: "Todos os campos são obrigatórios" });
-      return;
-    }
+    const parsedData = roomSchema.parse(req.body);
+    const { name, seatsAmount, type } = parsedData;
+
+    const newRoom = await roomModel.createRoom(name, seatsAmount, type);
+
     res.status(201).json(newRoom);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Erro ao criar sala" });
+    next(err);
     return;
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const roomId = parseInt(req.params.id);
-    const receivedParsed = roomSchema.parse(req.body);
-    const { name, seatsAmount, type } = receivedParsed;
-    const updatedRoom = roomModel.update(roomId, {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const parsedData = roomSchema.partial().parse(req.body);
+    const { name, seatsAmount, type } = parsedData;
+
+    const exist = await roomModel.getRoomById(id);
+    if (!exist) {
+      res.status(404).json({ message: "Sala não encontrada" });
+      return;
+    }
+
+    const updatedRoom = await roomModel.updateRoom(id, {
       name,
       seatsAmount,
       type,
     });
-    if (!updatedRoom) {
-      res.status(404).json({ message: "Sala não encontrada" });
-      return;
-    }
+
     res.status(200).json(updatedRoom);
     return;
   } catch (err) {
-    res.status(500).json({ message: "Erro ao atualizar sala" });
+    next(err);
     return;
   }
 };
 
-const deleteRoom = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const roomId = parseInt(req.params.id);
-    const deletedRoom = roomModel.delete(roomId);
-    if (!deletedRoom) {
-      res.status(404).json({ message: "Sala não encontrada" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
-    res.status(200).json(deletedRoom);
-    return;
+
+    await roomModel.deleteRoom(id);
+
+    res.status(204).send();
   } catch (err) {
-    res.status(500).json({ message: "Erro ao deletar sala" });
+    next(err);
     return;
   }
 };
@@ -102,5 +116,5 @@ export default {
   show,
   create,
   update,
-  delete: deleteRoom,
+  remove,
 };

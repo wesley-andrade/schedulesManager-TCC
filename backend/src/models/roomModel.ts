@@ -1,61 +1,38 @@
-import { Room } from "../types";
-import { rooms } from "../data/mockData";
+import prisma from "./prisma";
+import { RoomType } from "@prisma/client";
 
-const getAllRooms = (): Room[] => {
-  const room: Room[] = rooms.map((r) => r);
-  return room;
+const getAllRooms = async () => {
+  return await prisma.room.findMany();
 };
 
-const getRoomById = (id: number): Room | undefined => {
-  const roomFound = rooms.find((d) => {
-    d.id === id;
-  });
-  if (!roomFound) return undefined;
-  return roomFound;
+const getRoomById = async (id: number) => {
+  return await prisma.room.findUnique({ where: { id } });
 };
 
-const create = (
+const createRoom = async (
   name: string,
   seatsAmount: number,
-  type: string
-): Room | undefined => {
-  const newRoom: Room = {
-    id: Math.floor(Math.random() * 9999),
-    name,
-    seatsAmount,
-    type,
-  };
-  if (!newRoom) return undefined;
-  rooms.push(newRoom);
-  return newRoom;
+  type: RoomType
+) => {
+  return await prisma.room.create({ data: { name, seatsAmount, type } });
 };
 
-const update = (
+const updateRoom = async (
   id: number,
-  updates: Partial<Omit<Room, "id">>
-): Room | undefined => {
-  const index = rooms.findIndex((r) => {
-    r.id === id;
-  });
-  if (index === -1) return undefined;
-
-  rooms[index] = { ...rooms[index], ...updates };
-  return rooms[index];
+  updates: Partial<{ name: string; seatsAmount: number; type: RoomType }>
+) => {
+  return await prisma.room.update({ where: { id }, data: updates });
 };
 
-const deleteRoom = (id: number): Room | undefined => {
-  const index = rooms.findIndex((d) => {
-    d.id === id;
-  });
-  if (index === -1) return undefined;
-  const [deletedRoom] = rooms.splice(index, 1);
-  return deletedRoom;
+const deleteRoom = async (id: number) => {
+  await prisma.room.delete({ where: { id } });
+  return true;
 };
 
 export default {
   getAllRooms,
   getRoomById,
-  create,
-  update,
-  delete: deleteRoom,
+  createRoom,
+  updateRoom,
+  deleteRoom,
 };

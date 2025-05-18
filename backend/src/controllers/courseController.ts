@@ -1,27 +1,35 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import { Course } from "../types";
 import courseModel from "../models/courseModel";
 
 const createCourseSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório").regex(/^[a-zA-Z\s]+$/, "Nome deve conter apenas letras")
+  name: z
+    .string()
+    .min(1, "Nome é obrigatório")
+    .regex(/^[\p{L}\s'-]+$/u, "Nome inválido"),
 });
 
-const index = (req: Request, res: Response) => {
+const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const courses: Course[] = courseModel.getAllCourses();
+    const courses = await courseModel.getAllCourses();
+
     res.status(200).json(courses);
     return;
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar cursos" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const show = (req: Request, res: Response) => {
+const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const course = courseModel.getCourseById(id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const course = await courseModel.getCourseById(id);
 
     if (!course) {
       res.status(404).json({ message: "Curso não encontrado" });
@@ -30,61 +38,74 @@ const show = (req: Request, res: Response) => {
 
     res.status(200).json(course);
     return;
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar curso" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const create = (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsedData = createCourseSchema.parse(req.body);
     const { name } = parsedData;
 
-    const newCourse = courseModel.createCourse(name);
+    const exist = await courseModel.findByName(name);
+    if (exist) {
+      res.status(400).json({ message: "Já existe um curso com esse nome" });
+      return;
+    }
+
+    const newCourse = await courseModel.createCourse(name);
+
     res.status(201).json(newCourse);
     return;
-  } catch (error) {
-    res.status(400).json({ message: "Erro ao criar curso" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
 
-const update = (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
     const parsedData = createCourseSchema.parse(req.body);
     const { name } = parsedData;
 
-    const updatedCourse = courseModel.updateCourse(id, { name });
-
-    if (!updatedCourse) {
+    const exist = await courseModel.getCourseById(id);
+    if (!exist) {
       res.status(404).json({ message: "Curso não encontrado" });
       return;
     }
+
+    const updatedCourse = await courseModel.updateCourse(id, { name });
 
     res.status(200).json(updatedCourse);
     return;
-  } catch (error) {
-    res.status(400).json({ message: "Erro ao atualizar curso" });
+  } catch (err) {
+    next(err);
     return;
   }
-}
+};
 
-const deleteCourse = (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
-    const deleted = courseModel.deleteCourse(id);
-
-    if (!deleted) {
-      res.status(404).json({ message: "Curso não encontrado" });
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
 
-    res.status(204).send();
+    await courseModel.deleteCourse(id);
+
+    res.status(204).end();
     return;
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao deletar curso" });
+  } catch (err) {
+    next(err);
     return;
   }
 };
@@ -94,5 +115,5 @@ export default {
   show,
   create,
   update,
-  delete: deleteCourse,
-}
+  remove,
+};

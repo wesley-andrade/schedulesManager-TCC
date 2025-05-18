@@ -1,86 +1,100 @@
-import { classSchedules, classScheduleRooms } from "../data/mockData";
-import { ClassSchedule, ClassScheduleRoom } from "../types";
+import prisma from "./prisma";
 
-const getAllClassSchedules = (): ClassSchedule[] => {
-  return classSchedules;
+const getAllClassSchedules = async () => {
+  return await prisma.classSchedule.findMany({
+    include: {
+      schedule: true,
+      disciplineTeacher: {
+        include: { teacher: true, discipline: true },
+      },
+      rooms: { include: { room: true } },
+    },
+  });
 };
 
-const getClassScheduleById = (id: number): ClassSchedule | undefined => {
-  return classSchedules.find((cs) => cs.id === id);
+const getClassScheduleById = async (id: number) => {
+  return await prisma.classSchedule.findUnique({
+    where: { id },
+    include: {
+      schedule: true,
+      disciplineTeacher: true,
+      rooms: true,
+    },
+  });
 };
 
-const createClassSchedule = (
+const createClassSchedule = async (
   scheduleId: number,
   disciplineTeacherId: number,
   date: string
-): ClassSchedule => {
-  const newClassSchedule: ClassSchedule = {
-    id: classSchedules.length + 1,
-    scheduleId,
-    disciplineTeacherId,
-    date,
-  };
-
-  classSchedules.push(newClassSchedule);
-  return newClassSchedule;
+) => {
+  return await prisma.classSchedule.create({
+    data: { scheduleId, disciplineTeacherId, date: new Date(date) },
+  });
 };
 
-const updateClassSchedule = (
+const updateClassSchedule = async (
   id: number,
-  newScheduleId: number,
-  newDate: string
-): ClassSchedule | undefined => {
-  const csIndex = classSchedules.findIndex((cs) => cs.id === id);
-  if (csIndex === -1) return undefined;
+  scheduleId: number,
+  date: string
+) => {
+  const updated = await prisma.classSchedule.update({
+    where: { id },
+    data: {
+      scheduleId: scheduleId,
+      date: new Date(date),
+      rooms: {
+        updateMany: {
+          where: { classScheduleId: id },
+          data: { scheduleId: scheduleId, date: new Date(date) },
+        },
+      },
+    },
+  });
 
-  classSchedules[csIndex].scheduleId = newScheduleId;
-  classSchedules[csIndex].date = newDate;
-
-  const roomEntry = classScheduleRooms.find(
-    (csr) => csr.classScheduleId === id
-  );
-  if (roomEntry) {
-    roomEntry.scheduleId = newScheduleId;
-    roomEntry.date = newDate;
-  }
-
-  return classSchedules[csIndex];
+  return updated;
 };
 
-const deleteClassSchedule = (id: number): boolean => {
-  const index = classSchedules.findIndex((cs) => cs.id === id);
-  if (index === -1) return false;
-  classSchedules.splice(index, 1);
-
-  const roomIndex = classScheduleRooms.findIndex(
-    (r) => r.classScheduleId === id
-  );
-  if (roomIndex !== -1) classScheduleRooms.splice(roomIndex, 1);
+const deleteClassSchedule = async (id: number) => {
+  await prisma.classScheduleRoom.deleteMany({ where: { classScheduleId: id } });
+  await prisma.classSchedule.delete({ where: { id } });
 
   return true;
 };
 
-const createClassScheduleRoom = (
+const getAllClassScheduleRooms = async () => {
+  return await prisma.classScheduleRoom.findMany({
+    include: {
+      room: true,
+      classSchedule: {
+        include: {
+          schedule: true,
+          disciplineTeacher: {
+            include: {
+              teacher: true,
+              discipline: true,
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+const createClassScheduleRoom = async (
   classScheduleId: number,
   roomId: number,
   scheduleId: number,
   date: string
-): ClassScheduleRoom => {
-  const newEntry: ClassScheduleRoom = {
-    id: Math.floor(Math.random() * 9999),
-    classScheduleId,
-    roomId,
-    scheduleId,
-    date,
-  };
-
-  classScheduleRooms.push(newEntry);
-  return newEntry;
+) => {
+  return await prisma.classScheduleRoom.create({
+    data: { classScheduleId, roomId, scheduleId, date: new Date(date) },
+  });
 };
 
-const clearAllClassSchedules = (): void => {
-  classSchedules.length = 0;
-  classScheduleRooms.length = 0;
+const clearAllClassSchedules = async () => {
+  await prisma.classScheduleRoom.deleteMany();
+  await prisma.classSchedule.deleteMany();
 };
 
 export default {
@@ -89,6 +103,7 @@ export default {
   createClassSchedule,
   updateClassSchedule,
   deleteClassSchedule,
+  getAllClassScheduleRooms,
   createClassScheduleRoom,
   clearAllClassSchedules,
 };

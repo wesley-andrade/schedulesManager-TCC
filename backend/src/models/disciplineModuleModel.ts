@@ -1,35 +1,52 @@
-import { DiscplineModule } from "../types";
-import { disciplineModule } from "../data/mockData";
+import prisma from "./prisma";
 
-const getAllDisciplinesModules = (): DiscplineModule[] => {
-  return disciplineModule;
+const getAllDisciplinesModules = async () => {
+  return await prisma.disciplineModule.findMany();
 };
 
-const getDisciplineModuleById = (id: number): DiscplineModule | undefined => {
-  return disciplineModule.find((dm) => dm.id === id);
+const getDisciplineModuleById = async (id: number) => {
+  return await prisma.disciplineModule.findUnique({
+    where: { id },
+  });
 };
 
-const createDisciplineModule = (
+const createDisciplineModule = async (
   disciplineId: number,
   moduleId: number,
   academicPeriodId: number
-): DiscplineModule => {
-  const newDisciplineModule: DiscplineModule = {
-    id: Math.floor(Math.random() * 9999),
-    disciplineId,
-    moduleId,
-    academicPeriodId,
-  };
-  disciplineModule.push(newDisciplineModule);
-  return newDisciplineModule;
+) => {
+  return await prisma.disciplineModule.create({
+    data: { disciplineId, moduleId, academicPeriodId },
+  });
 };
 
-const deleteDisciplineModule = (id: number): boolean => {
-  const index = disciplineModule.findIndex((dm) => dm.id === id);
-  if (index === -1) return false;
-
-  disciplineModule.splice(index, 1);
+const deleteDisciplineModule = async (id: number) => {
+  await prisma.disciplineModule.delete({ where: { id } });
   return true;
+};
+
+const findByDisciplineAndModule = async (
+  disciplineId: number,
+  moduleId: number
+) => {
+  return await prisma.disciplineModule.findFirst({
+    where: {
+      disciplineId,
+      moduleId,
+    },
+  });
+};
+
+const findByDisciplineAndPeriod = async (
+  disciplineId: number,
+  academicPeriodId: number
+) => {
+  return await prisma.disciplineModule.findFirst({
+    where: {
+      disciplineId,
+      academicPeriodId,
+    },
+  });
 };
 
 export default {
@@ -37,4 +54,6 @@ export default {
   getDisciplineModuleById,
   createDisciplineModule,
   deleteDisciplineModule,
+  findByDisciplineAndModule,
+  findByDisciplineAndPeriod,
 };
