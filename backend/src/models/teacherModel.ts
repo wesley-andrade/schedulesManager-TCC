@@ -8,7 +8,7 @@ const getTeacherById = async (id: number) => {
   return await prisma.teacher.findUnique({ where: { id } });
 };
 
-const createTeacher = async (userId: number, phone: string) => {
+const createTeacher = async (userId: number, phone: string | null) => {
   return prisma.teacher.create({ data: { userId, phone } });
 };
 

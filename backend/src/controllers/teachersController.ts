@@ -5,7 +5,10 @@ import userModel from "../models/userModel";
 
 const createTeacherSchema = z.object({
   userId: z.number({ message: "ID deve ser um número" }),
-  phone: z.string().length(11, "Número de telefone inválido"),
+  phone: z
+    .string()
+    .regex(/^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/, "Telefone inválido")
+    .optional(),
 });
 
 const index = async (req: Request, res: Response, next: NextFunction) => {
@@ -54,7 +57,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    const newTeacher = await teachersModel.createTeacher(userId, phone);
+    const newTeacher = await teachersModel.createTeacher(userId, phone || null);
 
     res.status(201).json(newTeacher);
     return;

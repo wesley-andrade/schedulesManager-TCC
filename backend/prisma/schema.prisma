@@ -30,7 +30,7 @@ model User {
 model Teacher {
   id                 Int                   @id @default(autoincrement())
   userId             Int                   @unique
-  phone              String
+  phone              String?
   user               User                  @relation(fields: [userId], references: [id])
   availabilities     TeacherAvailability[]
   disciplineTeachers DisciplineTeacher[]
