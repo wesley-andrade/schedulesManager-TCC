@@ -132,3 +132,9 @@ dist
 .pnp.*
 build
 
+# Prisma
+/prisma/migrations
+/prisma/.env
+/prisma/*.dev.db
+/prisma/*.test.db
+!prisma/schema.prisma

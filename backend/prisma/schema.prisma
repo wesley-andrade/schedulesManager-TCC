@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  standard
+}
+
+enum RoomType {
+  Comum
+  Laboratório
+  Auditório
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String
+  email    String   @unique
+  password String
+  role     Role
+  teacher  Teacher?
+}
+
+model Teacher {
+  id                 Int                   @id @default(autoincrement())
+  userId             Int                   @unique
+  phone              String
+  user               User                  @relation(fields: [userId], references: [id])
+  availabilities     TeacherAvailability[]
+  disciplineTeachers DisciplineTeacher[]
+}
+
+model TeacherAvailability {
+  id         Int      @id @default(autoincrement())
+  teacherId  Int
+  scheduleId Int
+  status     Boolean
+  teacher    Teacher  @relation(fields: [teacherId], references: [id])
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+}
+
+model Schedule {
+  id                 Int                   @id @default(autoincrement())
+  dayOfWeek          String
+  timeSlotId         Int
+  timeSlot           TimeSlot              @relation(fields: [timeSlotId], references: [id])
+  availabilities     TeacherAvailability[]
+  classScheduleRooms ClassScheduleRoom[]
+  ClassSchedule      ClassSchedule[]
+}
+
+model TimeSlot {
+  id        Int        @id @default(autoincrement())
+  startTime String
+  endTime   String
+  schedules Schedule[]
+}
+
+model ClassSchedule {
+  id                  Int                 @id @default(autoincrement())
+  scheduleId          Int
+  disciplineTeacherId Int
+  date                DateTime
+  schedule            Schedule            @relation(fields: [scheduleId], references: [id])
+  disciplineTeacher   DisciplineTeacher   @relation(fields: [disciplineTeacherId], references: [id])
+  rooms               ClassScheduleRoom[]
+}
+
+model DisciplineTeacher {
+  id             Int             @id @default(autoincrement())
+  disciplineId   Int
+  teacherId      Int
+  discipline     Discipline      @relation(fields: [disciplineId], references: [id])
+  teacher        Teacher         @relation(fields: [teacherId], references: [id])
+  classSchedules ClassSchedule[]
+}
+
+model Discipline {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  totalHours         Int
+  requiredRoomType   RoomType
+  disciplineModules  DisciplineModule[]
+  disciplineCourses  DisciplineCourse[]
+  disciplineTeachers DisciplineTeacher[]
+}
+
+model DisciplineModule {
+  id               Int            @id @default(autoincrement())
+  disciplineId     Int
+  moduleId         Int
+  academicPeriodId Int
+  discipline       Discipline     @relation(fields: [disciplineId], references: [id])
+  module           Module         @relation(fields: [moduleId], references: [id])
+  academicPeriod   AcademicPeriod @relation(fields: [academicPeriodId], references: [id])
+}
+
+model AcademicPeriod {
+  id        Int                @id @default(autoincrement())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  modules   DisciplineModule[]
+}
+
+model Module {
+  id                Int                @id @default(autoincrement())
+  name              String
+  totalStudents     Int
+  disciplineModules DisciplineModule[]
+}
+
+model DisciplineCourse {
+  id           Int        @id @default(autoincrement())
+  disciplineId Int
+  courseId     Int
+  discipline   Discipline @relation(fields: [disciplineId], references: [id])
+  course       Course     @relation(fields: [courseId], references: [id])
+}
+
+model Course {
+  id          Int                @id @default(autoincrement())
+  name        String
+  disciplines DisciplineCourse[]
+}
+
+model Room {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  seatsAmount Int
+  type        RoomType
+  usages      ClassScheduleRoom[]
+}
+
+model ClassScheduleRoom {
+  id              Int           @id @default(autoincrement())
+  classScheduleId Int
+  roomId          Int
+  scheduleId      Int
+  date            DateTime
+  classSchedule   ClassSchedule @relation(fields: [classScheduleId], references: [id])
+  room            Room          @relation(fields: [roomId], references: [id])
+  schedule        Schedule      @relation(fields: [scheduleId], references: [id])
+}
