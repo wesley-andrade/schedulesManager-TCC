@@ -1,7 +1,9 @@
 import prisma from "./prisma";
 
 const getAllSchedules = async () => {
-  return await prisma.schedule.findMany();
+  return await prisma.schedule.findMany({
+    include: { timeSlot: true }
+  });
 };
 
 const getScheduleById = async (id: number) => {

@@ -30,7 +30,7 @@ const show = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      res.status(400).json({ message: "ID inválida" });
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
 
@@ -111,13 +111,13 @@ const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      res.status(400).json({ message: "ID iválido" });
+      res.status(400).json({ message: "ID inválido" });
       return;
     }
 
     await schedulesModel.deleteSchedule(id);
 
-    res.status(204).send();
+    res.status(204).end();
     return;
   } catch (err) {
     next(err);

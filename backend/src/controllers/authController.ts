@@ -98,6 +98,12 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
     res.status(200).json({
       message: "Login realizado com sucesso",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
       token,
     });
     return;

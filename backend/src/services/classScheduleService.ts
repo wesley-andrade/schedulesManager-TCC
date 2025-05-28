@@ -33,16 +33,34 @@ async function generateSchedules(academicPeriodId: number) {
     include: { teacher: true, discipline: true },
   });
 
-  const disciplineTeacherIds = disciplineTeachers.map((dt) => dt.id);
-
   await prisma.classScheduleRoom.deleteMany({
     where: {
-      classSchedule: { disciplineTeacherId: { in: disciplineTeacherIds } },
+      classSchedule: {
+        disciplineTeacher: {
+          discipline: {
+            disciplineModules: {
+              some: {
+                academicPeriodId: academicPeriodId,
+              },
+            },
+          },
+        },
+      },
     },
   });
 
   await prisma.classSchedule.deleteMany({
-    where: { disciplineTeacherId: { in: disciplineTeacherIds } },
+    where: {
+      disciplineTeacher: {
+        discipline: {
+          disciplineModules: {
+            some: {
+              academicPeriodId: academicPeriodId,
+            },
+          },
+        },
+      },
+    },
   });
 
   for (const dt of disciplineTeachers) {
@@ -184,17 +202,80 @@ async function updateClassSchedule(
     throw new Error("Aula não encontrada");
   }
 
+  const disciplineModule = await prisma.disciplineModule.findFirst({
+    where: {
+      disciplineId: classSchedule.disciplineTeacher.disciplineId,
+    },
+    include: {
+      academicPeriod: true,
+    },
+  });
+
+  if (!disciplineModule?.academicPeriod) {
+    throw new Error("Período acadêmico não encontrado para esta disciplina");
+  }
+
+  const periodStart = parseISO(
+    disciplineModule.academicPeriod.startDate.toISOString()
+  );
+  const periodEnd = parseISO(
+    disciplineModule.academicPeriod.endDate.toISOString()
+  );
+
+  if (dateObj < periodStart) {
+    throw new Error(
+      `A data não pode ser anterior ao início do período (${format(
+        periodStart,
+        "dd/MM/yyyy"
+      )})`
+    );
+  }
+
+  if (dateObj > periodEnd) {
+    throw new Error(
+      `A data não pode ser posterior ao fim do período (${format(
+        periodEnd,
+        "dd/MM/yyyy"
+      )})`
+    );
+  }
+
   const discipline = classSchedule.disciplineTeacher.discipline;
   const teacherId = classSchedule.disciplineTeacher.teacherId;
 
-  const holiday = await holidayService.getHolidays(dateObj, dateObj);
-  if (holiday.length > 0) {
-    throw new Error("Data em feriado");
+  const schedule = await prisma.schedule.findUnique({
+    where: { id: scheduleId },
+    include: { timeSlot: true },
+  });
+
+  if (!schedule || !schedule.timeSlot) {
+    throw new Error("Horário não encontrado");
   }
 
-  const disciplineModule = await prisma.disciplineModule.findFirst({
-    where: { disciplineId: discipline.id },
-  });
+  const dayOfWeek = capitalize(
+    dateObj.toLocaleDateString("pt-BR", { weekday: "long" })
+  );
+
+  if (dayOfWeek !== schedule.dayOfWeek) {
+    throw new Error(
+      `Este horário só pode ser alocado em ${schedule.dayOfWeek}`
+    );
+  }
+
+  const fullDateTime = parseISO(
+    `${format(dateObj, "yyyy-MM-dd")}T${schedule.timeSlot.startTime}:00`
+  );
+
+  const startOfDay = new Date(dateObj);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(dateObj);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const holidays = await holidayService.getHolidays(startOfDay, endOfDay);
+
+  if (holidays.length > 0) {
+    throw new Error("Data em feriado");
+  }
 
   const module = disciplineModule
     ? await prisma.module.findUnique({
@@ -206,7 +287,7 @@ async function updateClassSchedule(
     where: {
       id: { not: id },
       scheduleId,
-      date: dateObj,
+      date: fullDateTime,
       disciplineTeacher: { teacherId },
     },
   });
@@ -223,7 +304,7 @@ async function updateClassSchedule(
       },
       usages: {
         none: {
-          date: dateObj,
+          date: fullDateTime,
           scheduleId,
         },
       },
@@ -236,7 +317,7 @@ async function updateClassSchedule(
 
   const updatedSchedule = await prisma.classSchedule.update({
     where: { id },
-    data: { scheduleId, date: dateObj },
+    data: { scheduleId, date: fullDateTime },
   });
 
   const existingRoom = await prisma.classScheduleRoom.findFirst({
@@ -249,7 +330,7 @@ async function updateClassSchedule(
       data: {
         roomId: availableRoom.id,
         scheduleId,
-        date: dateObj,
+        date: fullDateTime,
       },
     });
   } else {
@@ -258,7 +339,7 @@ async function updateClassSchedule(
         classScheduleId: id,
         roomId: availableRoom.id,
         scheduleId,
-        date: dateObj,
+        date: fullDateTime,
       },
     });
   }

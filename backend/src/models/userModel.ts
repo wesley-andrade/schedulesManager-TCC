@@ -2,12 +2,25 @@ import { Role } from "@prisma/client";
 import prisma from "./prisma";
 
 const getAllUsers = async () => {
-  const users = await prisma.user.findMany();
-  return users.map(({ password, ...rest }) => rest);
+  const users = await prisma.user.findMany({
+    include: {
+      teacher: true,
+    },
+  });
+
+  return users.map(({ password, ...rest }) => ({
+    ...rest,
+    phone: rest.teacher?.phone || null,
+  }));
 };
 
 const getUserById = async (id: number) => {
-  return await prisma.user.findUnique({ where: { id } });
+  return await prisma.user.findUnique({
+    where: { id },
+    include: {
+      teacher: true,
+    },
+  });
 };
 
 const getUserByEmail = async (email: string) => {
@@ -73,7 +86,25 @@ const updateUser = async (
 };
 
 const deleteUser = async (id: number) => {
-  await prisma.user.delete({ where: { id } });
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: { teacher: true },
+  });
+
+  if (!user) {
+    throw new Error("Usuário não encontrado");
+  }
+
+  if (user.teacher) {
+    await prisma.teacher.delete({
+      where: { userId: id },
+    });
+  }
+
+  await prisma.user.delete({
+    where: { id },
+  });
+
   return true;
 };
 

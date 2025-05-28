@@ -1,13 +1,35 @@
 import prisma from "./prisma";
 
-const getAllClassSchedules = async () => {
+const getAllClassSchedules = async (teacherId?: number) => {
   return await prisma.classSchedule.findMany({
+    where: teacherId
+      ? {
+          disciplineTeacher: {
+            teacherId: teacherId,
+          },
+        }
+      : undefined,
     include: {
-      schedule: true,
-      disciplineTeacher: {
-        include: { teacher: true, discipline: true },
+      schedule: {
+        include: {
+          timeSlot: true,
+        },
       },
-      rooms: { include: { room: true } },
+      disciplineTeacher: {
+        include: {
+          teacher: {
+            include: {
+              user: true
+            }
+          },
+          discipline: true,
+        },
+      },
+      rooms: {
+        include: {
+          room: true,
+        },
+      },
     },
   });
 };

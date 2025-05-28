@@ -17,6 +17,7 @@ const index = async (req: Request, res: Response, next: NextFunction) => {
     return;
   } catch (err) {
     next(err);
+    return;
   }
 };
 
@@ -98,7 +99,8 @@ const remove = async (req: Request, res: Response, next: NextFunction) => {
 
     await moduleModel.deleteModule(id);
 
-    res.status(204).send();
+    res.status(204).end();
+    return;
   } catch (err) {
     next(err);
     return;

@@ -133,7 +133,7 @@ const remove = async (req: Request, res: Response, next: NextFunction) => {
 
     await teacherAvailabilityModel.deleteTeacherAvailability(id);
 
-    res.status(204).send();
+    res.status(204).end();
     return;
   } catch (err) {
     next(err);

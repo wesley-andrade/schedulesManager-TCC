@@ -43,6 +43,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!disciplineExist) {
       res.status(404).json({ message: "Disciplina não encontrada" });
+      return;
     }
 
     const newDisciplineTeacher =
@@ -69,7 +70,7 @@ const remove = async (req: Request, res: Response, next: NextFunction) => {
 
     await disciplineTeacherModel.deleteDisciplineTeacher(id);
 
-    res.status(204).send();
+    res.status(204).end();
     return;
   } catch (err) {
     next(err);

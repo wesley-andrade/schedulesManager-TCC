@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Holiday } from "../types";
-import { isAfter, parseISO } from "date-fns";
+import { isAfter, parseISO, isBefore } from "date-fns";
 
 async function getHolidays(startDate: Date, endDate: Date): Promise<Holiday[]> {
   try {
@@ -12,12 +12,16 @@ async function getHolidays(startDate: Date, endDate: Date): Promise<Holiday[]> {
       allHolidays.push(...nationalHolidays);
     }
 
-    return allHolidays.filter((holiday) => {
+    const filteredHolidays = allHolidays.filter((holiday) => {
       const holidayDate = parseISO(holiday.date);
-      return !isAfter(holidayDate, endDate);
+      const isInRange =
+        !isBefore(holidayDate, startDate) && !isAfter(holidayDate, endDate);
+
+      return isInRange;
     });
+
+    return filteredHolidays;
   } catch (error) {
-    console.error("Erro ao buscar feriados:", error);
     return [];
   }
 }
@@ -33,7 +37,6 @@ async function getNationalHolidays(year: number): Promise<Holiday[]> {
       type: "national" as const,
     }));
   } catch (error) {
-    console.error("Erro ao buscar feriados nacionais:", error);
     return [];
   }
 }
