@@ -132,7 +132,9 @@ async function generateSchedules(academicPeriodId: number) {
           where: {
             date: fullDateTime,
             scheduleId: schedule.id,
-            disciplineTeacherId: dt.id,
+            disciplineTeacher: {
+              teacherId: dt.teacherId,
+            },
           },
         });
         if (teacherConflict) continue;
