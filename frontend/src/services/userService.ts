@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { formatPhoneNumber } from "@/utils/formatters";
 
 export interface User {
   id: number;
@@ -59,6 +60,11 @@ export const userService = {
       if (dataToSend.password === "") {
         delete dataToSend.password;
       }
+      if (!dataToSend.phone || dataToSend.phone === "-") {
+        delete dataToSend.phone;
+      } else {
+        dataToSend.phone = formatPhoneNumber(dataToSend.phone).replace("-", "");
+      }
 
       const response = await api.put(`/users/${id}`, dataToSend);
       return response.data;
@@ -84,7 +90,14 @@ export const userService = {
 
   async createUser(userData: Omit<User, "id">): Promise<User> {
     try {
-      const response = await api.post("/auth/register", userData);
+      const dataToSend = { ...userData };
+      if (!dataToSend.phone || dataToSend.phone === "-") {
+        delete dataToSend.phone;
+      } else {
+        dataToSend.phone = formatPhoneNumber(dataToSend.phone).replace("-", "");
+      }
+
+      const response = await api.post("/auth/register", dataToSend);
       return response.data.userWithoutPassword;
     } catch (error) {
       if (error.response?.status === 400 || error.response?.status === 409) {

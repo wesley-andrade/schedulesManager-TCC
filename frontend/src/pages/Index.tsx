@@ -36,7 +36,6 @@ const Index = () => {
   const [academicPeriods, setAcademicPeriods] = useState<any[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [calendarKey, setCalendarKey] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
 
