@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { User } from "@/services/userService";
 import { useCalendar } from "@/contexts/CalendarContext";
+import { CalendarPlus } from "lucide-react";
 
 const Index = () => {
   const { currentUser } = useUser();
@@ -141,7 +142,7 @@ const Index = () => {
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                       <Button className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2">
-                        + Gerar Aulas
+                        <CalendarPlus /> Gerar Aulas
                       </Button>
                     </DialogTrigger>
                     <DialogContent>

@@ -8,23 +8,27 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { LoginFormProps } from "./types";
 import { validateLoginForm, LoginFormErrors } from "./utils";
+import { ROUTES } from "@/config/routes";
 
 const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { login } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setErrors({});
 
     const validationErrors = validateLoginForm({ email, password });
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setIsLoading(false);
       return;
     }
 
@@ -36,7 +40,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
           description: "Bem-vindo ao TimeWise!",
         });
         onSuccess?.();
-        navigate("/dashboard");
+        navigate(ROUTES.DASHBOARD);
       }
     } catch (error) {
       toast({
@@ -47,6 +51,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             : "Usuário ou senha incorretos",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -69,6 +75,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
               setErrors({ ...errors, email: undefined });
             }}
             className={`h-12 pl-10 ${errors.email ? "border-red-500" : ""}`}
+            required
           />
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <User size={18} />
@@ -94,6 +101,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
               setErrors({ ...errors, password: undefined });
             }}
             className={`h-12 pr-10 ${errors.password ? "border-red-500" : ""}`}
+            required
           />
           <button
             type="button"
@@ -120,8 +128,9 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       <Button
         type="submit"
         className="w-full h-12 bg-blue-500 hover:bg-blue-600 transition-colors"
+        disabled={isLoading}
       >
-        ENTRAR
+        {isLoading ? "Entrando..." : "Entrar"}
       </Button>
     </form>
   );

@@ -2,12 +2,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ROUTES } from "@/config/routes";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import UserManagement from "./pages/UserManagement";
 import AcademicPeriodManagement from "./pages/AcademicPeriodManagement";
 import RoomManagement from "./pages/RoomManagement";
 import ModuleManagement from "./pages/ModuleManagement";
+import ScheduleManagement from "@/pages/ScheduleManagement";
+import TeacherDisciplineManagement from "@/pages/TeacherDisciplineManagement";
 import { UserProvider } from "./contexts/UserContext";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -22,9 +25,9 @@ const App = () => (
           <Toaster />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Login />} />
+              <Route path={ROUTES.HOME} element={<Login />} />
               <Route
-                path="/dashboard"
+                path={ROUTES.DASHBOARD}
                 element={
                   <ProtectedRoute>
                     <Index />
@@ -32,7 +35,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/users"
+                path={ROUTES.USERS}
                 element={
                   <ProtectedRoute>
                     <UserManagement />
@@ -40,7 +43,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/academic-periods"
+                path={ROUTES.ACADEMIC_PERIODS}
                 element={
                   <ProtectedRoute>
                     <AcademicPeriodManagement />
@@ -48,7 +51,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/rooms"
+                path={ROUTES.ROOMS}
                 element={
                   <ProtectedRoute>
                     <RoomManagement />
@@ -56,10 +59,26 @@ const App = () => (
                 }
               />
               <Route
-                path="/classes"
+                path={ROUTES.CLASSES}
                 element={
                   <ProtectedRoute>
                     <ModuleManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.SCHEDULES}
+                element={
+                  <ProtectedRoute>
+                    <ScheduleManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.TEACHER_DISCIPLINES}
+                element={
+                  <ProtectedRoute>
+                    <TeacherDisciplineManagement />
                   </ProtectedRoute>
                 }
               />

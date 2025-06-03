@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ModuleDisciplines } from "@/components/modules/ModuleDisciplines";
+import { ROUTES } from "@/config/routes";
 
 interface ModuleFormData {
   name: string;
@@ -58,7 +59,7 @@ const ModuleManagement = () => {
         description: "Você precisa estar logado para acessar esta página",
         variant: "destructive",
       });
-      navigate("/");
+      navigate(ROUTES.HOME);
       return;
     }
 
@@ -68,7 +69,7 @@ const ModuleManagement = () => {
         description: "Apenas administradores podem acessar esta página",
         variant: "destructive",
       });
-      navigate("/dashboard");
+      navigate(ROUTES.DASHBOARD);
       return;
     }
 
@@ -87,7 +88,7 @@ const ModuleManagement = () => {
           error.message.includes("Token de autenticação não encontrado"))
       ) {
         logout();
-        navigate("/");
+        navigate(ROUTES.HOME);
       }
 
       toast({
@@ -102,7 +103,7 @@ const ModuleManagement = () => {
   };
 
   const handleBackToDashboard = () => {
-    navigate("/dashboard");
+    navigate(ROUTES.DASHBOARD);
   };
 
   const handleAddModule = () => {

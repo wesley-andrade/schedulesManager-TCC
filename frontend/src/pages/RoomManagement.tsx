@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ROUTES } from "@/config/routes";
 
 interface RoomFormData {
   name: string;
@@ -59,7 +60,7 @@ const RoomManagement = () => {
         description: "Você precisa estar logado para acessar esta página",
         variant: "destructive",
       });
-      navigate("/");
+      navigate(ROUTES.HOME);
       return;
     }
 
@@ -69,7 +70,7 @@ const RoomManagement = () => {
         description: "Apenas administradores podem acessar esta página",
         variant: "destructive",
       });
-      navigate("/dashboard");
+      navigate(ROUTES.DASHBOARD);
       return;
     }
 
@@ -88,15 +89,13 @@ const RoomManagement = () => {
           error.message.includes("Token de autenticação não encontrado"))
       ) {
         logout();
-        navigate("/");
+        navigate(ROUTES.HOME);
       }
 
       toast({
         title: "Erro",
         description:
-          error instanceof Error
-            ? error.message
-            : "Erro ao carregar salas",
+          error instanceof Error ? error.message : "Erro ao carregar salas",
         variant: "destructive",
       });
     } finally {
@@ -105,7 +104,7 @@ const RoomManagement = () => {
   };
 
   const handleBackToDashboard = () => {
-    navigate("/dashboard");
+    navigate(ROUTES.DASHBOARD);
   };
 
   const handleAddRoom = () => {
@@ -147,9 +146,7 @@ const RoomManagement = () => {
       toast({
         title: "Erro",
         description:
-          error instanceof Error
-            ? error.message
-            : "Erro ao excluir sala",
+          error instanceof Error ? error.message : "Erro ao excluir sala",
         variant: "destructive",
       });
     } finally {
@@ -216,9 +213,7 @@ const RoomManagement = () => {
       toast({
         title: "Erro",
         description:
-          error instanceof Error
-            ? error.message
-            : "Erro ao salvar sala",
+          error instanceof Error ? error.message : "Erro ao salvar sala",
         variant: "destructive",
       });
     }
@@ -255,10 +250,7 @@ const RoomManagement = () => {
           </Button>
         </div>
 
-        <RoomSearch
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
+        <RoomSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
         <RoomTable
           rooms={filteredRooms}
@@ -285,8 +277,8 @@ const RoomManagement = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir a sala{" "}
-                {roomToDelete?.name}? Esta ação não pode ser desfeita.
+                Tem certeza que deseja excluir a sala {roomToDelete?.name}? Esta
+                ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -305,4 +297,4 @@ const RoomManagement = () => {
   );
 };
 
-export default RoomManagement; 
+export default RoomManagement;

@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { LayoutGrid } from "lucide-react";
+import { BookOpen, DoorOpen, Users } from "lucide-react";
 
 interface DashboardStatsProps {
   totalRooms: number;
@@ -22,7 +22,7 @@ export const DashboardStats = ({
               <h3 className="text-3xl font-bold mt-1">{totalRooms}</h3>
             </div>
             <div className="bg-white/20 p-3 rounded-full">
-              <LayoutGrid className="h-6 w-6" />
+              <DoorOpen className="h-6 w-6" />
             </div>
           </div>
         </CardContent>
@@ -36,7 +36,7 @@ export const DashboardStats = ({
               <h3 className="text-3xl font-bold mt-1">{totalDisciplines}</h3>
             </div>
             <div className="bg-white/20 p-3 rounded-full">
-              <LayoutGrid className="h-6 w-6" />
+              <BookOpen className="h-6 w-6" />
             </div>
           </div>
         </CardContent>
@@ -50,7 +50,7 @@ export const DashboardStats = ({
               <h3 className="text-3xl font-bold mt-1">{totalTeachers}</h3>
             </div>
             <div className="bg-white/20 p-3 rounded-full">
-              <LayoutGrid className="h-6 w-6" />
+              <Users className="h-6 w-6" />
             </div>
           </div>
         </CardContent>

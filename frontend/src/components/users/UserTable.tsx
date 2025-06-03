@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Pencil, Trash2 } from "lucide-react";
 import { formatPhoneNumber } from "@/utils/formatters";
+import { useState } from "react";
 
 interface UserTableProps {
   users: User[];
@@ -24,15 +25,73 @@ export const UserTable = ({
   onEdit,
   onDelete,
 }: UserTableProps) => {
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof User;
+    direction: "asc" | "desc";
+  } | null>(null);
+
+  const handleSort = (key: keyof User) => {
+    setSortConfig((prev) => {
+      if (prev && prev.key === key) {
+        if (prev.direction === "asc") return { key, direction: "desc" };
+        if (prev.direction === "desc") return null;
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+  const getSortIcon = (key: keyof User) => {
+    if (!sortConfig || sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? "↑" : "↓";
+  };
+
+  const sortedUsers = (() => {
+    if (!sortConfig) return users;
+    const sorted = [...users];
+    sorted.sort((a, b) => {
+      const { key, direction } = sortConfig;
+      let aValue = a[key];
+      let bValue = b[key];
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  })();
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="text-gray-700 font-bold">Nome</TableHead>
-            <TableHead className="text-gray-700 font-bold">Email</TableHead>
-            <TableHead className="text-gray-700 font-bold">Telefone</TableHead>
-            <TableHead className="text-gray-700 font-bold">Tipo</TableHead>
+            <TableHead
+              className="text-gray-700 font-bold cursor-pointer select-none"
+              onClick={() => handleSort("name")}
+            >
+              Nome {getSortIcon("name")}
+            </TableHead>
+            <TableHead
+              className="text-gray-700 font-bold cursor-pointer select-none"
+              onClick={() => handleSort("email")}
+            >
+              Email {getSortIcon("email")}
+            </TableHead>
+            <TableHead
+              className="text-gray-700 font-bold cursor-pointer select-none"
+              onClick={() => handleSort("phone")}
+            >
+              Telefone {getSortIcon("phone")}
+            </TableHead>
+            <TableHead
+              className="text-gray-700 font-bold cursor-pointer select-none"
+              onClick={() => handleSort("role")}
+            >
+              Tipo {getSortIcon("role")}
+            </TableHead>
             <TableHead className="text-gray-700 font-bold text-right">
               Ações
             </TableHead>
@@ -45,14 +104,14 @@ export const UserTable = ({
                 Carregando...
               </TableCell>
             </TableRow>
-          ) : users.length === 0 ? (
+          ) : sortedUsers.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                 Nenhum usuário encontrado.
               </TableCell>
             </TableRow>
           ) : (
-            users.map((user) => (
+            sortedUsers.map((user) => (
               <TableRow
                 key={user.id}
                 className="hover:bg-blue-50 transition-colors border-t border-gray-200"

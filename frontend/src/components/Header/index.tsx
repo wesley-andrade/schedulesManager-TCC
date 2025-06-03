@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { useUser } from "@/contexts/UserContext";
+import { ROUTES } from "@/config/routes";
 
 interface HeaderProps {
   showLogout?: boolean;
@@ -12,7 +13,7 @@ const Header = ({ showLogout = true }: HeaderProps) => {
   const { currentUser } = useUser();
 
   const handleLogout = () => {
-    navigate("/");
+    navigate(ROUTES.HOME);
   };
 
   return (

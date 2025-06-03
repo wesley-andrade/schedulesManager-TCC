@@ -25,6 +25,7 @@ import {
   validatePhone,
   PasswordValidationError,
 } from "@/utils/validators";
+import { ROUTES } from "@/config/routes";
 
 interface UserFormData {
   name: string;
@@ -70,7 +71,7 @@ const UserManagement = () => {
         description: "Você precisa estar logado para acessar esta página",
         variant: "destructive",
       });
-      navigate("/");
+      navigate(ROUTES.HOME);
       return;
     }
 
@@ -80,7 +81,7 @@ const UserManagement = () => {
         description: "Apenas administradores podem acessar esta página",
         variant: "destructive",
       });
-      navigate("/dashboard");
+      navigate(ROUTES.DASHBOARD);
       return;
     }
 
@@ -99,7 +100,7 @@ const UserManagement = () => {
           error.message.includes("Token de autenticação não encontrado"))
       ) {
         logout();
-        navigate("/");
+        navigate(ROUTES.HOME);
       }
 
       toast({
@@ -114,7 +115,7 @@ const UserManagement = () => {
   };
 
   const handleBackToDashboard = () => {
-    navigate("/dashboard");
+    navigate(ROUTES.DASHBOARD);
   };
 
   const handleAddUser = () => {

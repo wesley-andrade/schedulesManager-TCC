@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 interface RoomTableProps {
   rooms: Room[];
@@ -24,6 +25,11 @@ export const RoomTable = ({
   onEdit,
   onDelete,
 }: RoomTableProps) => {
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Room;
+    direction: "asc" | "desc";
+  } | null>(null);
+
   const getTypeColor = (type: Room["type"]) => {
     switch (type) {
       case "Comum":
@@ -37,16 +43,63 @@ export const RoomTable = ({
     }
   };
 
+  const handleSort = (key: keyof Room) => {
+    setSortConfig((prev) => {
+      if (prev && prev.key === key) {
+        if (prev.direction === "asc") return { key, direction: "desc" };
+        if (prev.direction === "desc") return null;
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+  const getSortIcon = (key: keyof Room) => {
+    if (!sortConfig || sortConfig.key !== key)
+      return <span style={{ visibility: "hidden" }}>↑</span>;
+    return sortConfig.direction === "asc" ? "↑" : "↓";
+  };
+
+  const sortedRooms = (() => {
+    if (!sortConfig) return rooms;
+    const sorted = [...rooms];
+    sorted.sort((a, b) => {
+      const { key, direction } = sortConfig;
+      let aValue = a[key];
+      let bValue = b[key];
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  })();
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="text-gray-700 font-bold">Nome</TableHead>
-            <TableHead className="text-gray-700 font-bold">
-              Capacidade
+            <TableHead
+              className="text-gray-700 font-bold cursor-pointer select-none"
+              onClick={() => handleSort("name")}
+            >
+              Nome {getSortIcon("name")}
             </TableHead>
-            <TableHead className="text-gray-700 font-bold">Tipo</TableHead>
+            <TableHead
+              className="text-gray-700 font-bold cursor-pointer select-none"
+              onClick={() => handleSort("seatsAmount")}
+            >
+              Capacidade {getSortIcon("seatsAmount")}
+            </TableHead>
+            <TableHead
+              className="text-gray-700 font-bold cursor-pointer select-none"
+              onClick={() => handleSort("type")}
+            >
+              Tipo {getSortIcon("type")}
+            </TableHead>
             <TableHead className="text-gray-700 font-bold text-right">
               Ações
             </TableHead>
@@ -59,14 +112,14 @@ export const RoomTable = ({
                 Carregando...
               </TableCell>
             </TableRow>
-          ) : rooms.length === 0 ? (
+          ) : sortedRooms.length === 0 ? (
             <TableRow>
               <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                 Nenhuma sala encontrada.
               </TableCell>
             </TableRow>
           ) : (
-            rooms.map((room) => (
+            sortedRooms.map((room) => (
               <TableRow
                 key={room.id}
                 className="hover:bg-blue-50 transition-colors border-t border-gray-200"
@@ -74,9 +127,7 @@ export const RoomTable = ({
                 <TableCell>{room.name}</TableCell>
                 <TableCell>{room.seatsAmount} lugares</TableCell>
                 <TableCell>
-                  <Badge
-                    className={`${getTypeColor(room.type)} capitalize`}
-                  >
+                  <Badge className={`${getTypeColor(room.type)} capitalize`}>
                     {room.type}
                   </Badge>
                 </TableCell>
@@ -105,4 +156,4 @@ export const RoomTable = ({
       </Table>
     </div>
   );
-}; 
+};

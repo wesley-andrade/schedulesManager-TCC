@@ -1,5 +1,4 @@
 import { User } from "@/services/userService";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -11,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PasswordValidationError } from "@/utils/validators";
+import { useMemo } from "react";
+import { validatePassword } from "@/utils/validators";
 
 interface UserFormData {
   name: string;
@@ -42,6 +43,35 @@ export const UserForm = ({
   onFormDataChange,
   onFormErrorsChange,
 }: UserFormProps) => {
+  const allRequirements: PasswordValidationError[] = [
+    { type: "length", message: "A senha deve ter pelo menos 8 caracteres" },
+    {
+      type: "uppercase",
+      message: "A senha deve conter pelo menos uma letra maiúscula",
+    },
+    {
+      type: "lowercase",
+      message: "A senha deve conter pelo menos uma letra minúscula",
+    },
+    { type: "number", message: "A senha deve conter pelo menos um número" },
+    {
+      type: "special",
+      message: "A senha deve conter pelo menos um caractere especial (!@#$%&*)",
+    },
+  ];
+
+  const passwordErrors = useMemo(() => {
+    if (editingUser && !formData.password) return [];
+    return validatePassword(formData.password || "");
+  }, [formData.password, editingUser]);
+
+  let unmetTypes: string[] = [];
+  if (!formData.password && !(editingUser && !formData.password)) {
+    unmetTypes = allRequirements.map((r) => r.type);
+  } else {
+    unmetTypes = passwordErrors.map((e) => e.type);
+  }
+
   return (
     <div className="grid gap-4 py-4">
       <div className="grid gap-2">
@@ -140,22 +170,35 @@ export const UserForm = ({
             editingUser ? "Deixe em branco para manter a senha atual" : ""
           }
         />
-        {formErrors.password && formErrors.password.length > 0 && (
+        {(!editingUser || formData.password) && (
           <div className="mt-2 space-y-1">
-            <p className="text-sm font-medium text-red-500">
+            <p className="text-sm font-medium text-gray-700">
               A senha deve conter:
             </p>
+            <ul className="text-sm list-disc list-inside space-y-1">
+              {allRequirements.map((req, idx) => (
+                <li
+                  key={idx}
+                  className={
+                    unmetTypes.includes(req.type)
+                      ? "text-gray-600"
+                      : "text-green-600"
+                  }
+                >
+                  {req.message}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {formErrors.password && formErrors.password.length > 0 && (
+          <div className="mt-2 space-y-1">
             <ul className="text-sm text-red-500 list-disc list-inside space-y-1">
               {formErrors.password.map((error, index) => (
                 <li key={index}>{error.message}</li>
               ))}
             </ul>
           </div>
-        )}
-        {editingUser && !formErrors.password && (
-          <p className="text-sm text-gray-500">
-            Deixe em branco para manter a senha atual
-          </p>
         )}
       </div>
     </div>

@@ -1,17 +1,19 @@
 import { api } from "./api";
-import { RoomType } from "./roomService";
 
-export interface Discipline {
+export interface Teacher {
   id: number;
-  name: string;
-  totalHours: number;
-  requiredRoomType: RoomType;
+  userId: number;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
 }
 
-export const disciplineService = {
-  async getAllDisciplines(): Promise<Discipline[]> {
+export const teacherService = {
+  async getAllTeachers(): Promise<Teacher[]> {
     try {
-      const response = await api.get("/disciplines");
+      const response = await api.get("/teachers");
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
@@ -20,13 +22,13 @@ export const disciplineService = {
 
       if (error.response?.status === 403) {
         throw new Error(
-          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar disciplinas."
+          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar professores."
         );
       }
 
       throw new Error(
         error.response?.data?.message ||
-          `Erro ao buscar disciplinas (${
+          `Erro ao buscar professores (${
             error.response?.status || "sem status"
           }): ${error.message}`
       );

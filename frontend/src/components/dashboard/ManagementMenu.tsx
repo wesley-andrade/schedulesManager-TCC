@@ -1,57 +1,55 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ClipboardList, DoorOpen, Link } from "lucide-react";
 import {
   Calendar,
   BookOpen,
   Clock,
-  UserPlus,
   CalendarCheck,
-  Building2,
-  Users,
   UserCog,
 } from "lucide-react";
+import { ROUTES } from "@/config/routes";
 
 const managementOptions = [
   {
     title: "Períodos Acadêmicos",
     icon: <Calendar className="h-5 w-5" />,
-    path: "/academic-periods",
+    path: ROUTES.ACADEMIC_PERIODS,
   },
   {
     title: "Disciplinas",
     icon: <BookOpen className="h-5 w-5" />,
-    path: "/disciplines",
+    path: ROUTES.DISCIPLINES,
   },
   {
     title: "Horários",
     icon: <Clock className="h-5 w-5" />,
-    path: "/schedules",
+    path: ROUTES.SCHEDULES,
   },
   {
     title: "Vincular Professores",
-    icon: <UserPlus className="h-5 w-5" />,
-    path: "/teachers",
+    icon: <Link className="h-5 w-5" />,
+    path: ROUTES.TEACHER_DISCIPLINES,
   },
   {
     title: "Disponibilidades",
     icon: <CalendarCheck className="h-5 w-5" />,
-    path: "/availabilities",
+    path: ROUTES.AVAILABILITIES,
   },
   {
     title: "Salas",
-    icon: <Building2 className="h-5 w-5" />,
-    path: "/rooms",
+    icon: <DoorOpen className="h-5 w-5" />,
+    path: ROUTES.ROOMS,
   },
   {
     title: "Turmas",
-    icon: <Users className="h-5 w-5" />,
-    path: "/classes",
+    icon: <ClipboardList className="h-5 w-5" />,
+    path: ROUTES.CLASSES,
   },
   {
     title: "Usuários",
     icon: <UserCog className="h-5 w-5" />,
-    path: "/users",
+    path: ROUTES.USERS,
   },
 ];
 
