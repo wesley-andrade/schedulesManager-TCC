@@ -1,11 +1,28 @@
 import prisma from "./prisma";
 
 const getAllTeachers = async () => {
-  return await prisma.teacher.findMany();
+  const teachers = await prisma.teacher.findMany({ include: { user: true } });
+  return teachers.map((teacher) => {
+    if (teacher.user) {
+      const { password, ...userWithoutPassword } = teacher.user;
+      return { ...teacher, user: userWithoutPassword };
+    }
+
+    return teacher;
+  });
 };
 
 const getTeacherById = async (id: number) => {
-  return await prisma.teacher.findUnique({ where: { id } });
+  const teacher = await prisma.teacher.findUnique({
+    where: { id },
+    include: { user: true },
+  });
+  if (teacher && teacher.user) {
+    const { password, ...userWithoutPassword } = teacher.user;
+    return { ...teacher, user: userWithoutPassword };
+  }
+
+  return teacher;
 };
 
 const createTeacher = async (userId: number, phone: string | null) => {
