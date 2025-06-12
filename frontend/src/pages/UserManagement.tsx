@@ -245,6 +245,21 @@ const UserManagement = () => {
     }
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setFormErrors({});
+    }
+  };
+
+  const handleFormDataChange = (data: Partial<UserFormData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+  };
+
+  const handleFormErrorsChange = (errors: UserFormErrors) => {
+    setFormErrors((prev) => ({ ...prev, ...errors }));
+  };
+
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -290,16 +305,12 @@ const UserManagement = () => {
 
         <UserDialog
           isOpen={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={handleDialogOpenChange}
           editingUser={editingUser}
           formData={formData}
           formErrors={formErrors}
-          onFormDataChange={(data) =>
-            setFormData((prev) => ({ ...prev, ...data }))
-          }
-          onFormErrorsChange={(errors) =>
-            setFormErrors((prev) => ({ ...prev, ...errors }))
-          }
+          onFormDataChange={handleFormDataChange}
+          onFormErrorsChange={handleFormErrorsChange}
           onSubmit={handleSubmit}
         />
 

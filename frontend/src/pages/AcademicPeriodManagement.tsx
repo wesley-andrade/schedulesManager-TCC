@@ -130,8 +130,8 @@ const AcademicPeriodManagement = () => {
     setEditingPeriod(period);
     setFormData({
       name: period.name,
-      startDate: period.startDate,
-      endDate: period.endDate,
+      startDate: period.startDate.split("T")[0],
+      endDate: period.endDate.split("T")[0],
     });
     setIsDialogOpen(true);
   };
@@ -231,6 +231,13 @@ const AcademicPeriodManagement = () => {
     }
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setFormErrors({});
+    }
+  };
+
   const filteredPeriods = (periods ?? []).filter((period) =>
     period.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -276,7 +283,7 @@ const AcademicPeriodManagement = () => {
 
         <AcademicPeriodDialog
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={handleDialogOpenChange}
           formData={formData}
           setFormData={setFormData}
           formErrors={formErrors}

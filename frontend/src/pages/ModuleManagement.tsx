@@ -219,6 +219,13 @@ const ModuleManagement = () => {
     }
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setFormErrors({});
+    }
+  };
+
   const filteredModules = (modules ?? []).filter((module) =>
     module.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -278,7 +285,7 @@ const ModuleManagement = () => {
 
         <ModuleDialog
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={handleDialogOpenChange}
           formData={formData}
           setFormData={setFormData}
           formErrors={formErrors}

@@ -111,10 +111,7 @@ export const RoomDialog = ({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="type">Tipo</Label>
-              <Select
-                value={formData.type}
-                onValueChange={handleTypeChange}
-              >
+              <Select value={formData.type} onValueChange={handleTypeChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo da sala" />
                 </SelectTrigger>
@@ -123,9 +120,7 @@ export const RoomDialog = ({
                   <SelectItem value={RoomType.Laboratório}>
                     Laboratório
                   </SelectItem>
-                  <SelectItem value={RoomType.Auditório}>
-                    Auditório
-                  </SelectItem>
+                  <SelectItem value={RoomType.Auditório}>Auditório</SelectItem>
                 </SelectContent>
               </Select>
               {formErrors.type && (
@@ -142,4 +137,4 @@ export const RoomDialog = ({
       </DialogContent>
     </Dialog>
   );
-}; 
+};

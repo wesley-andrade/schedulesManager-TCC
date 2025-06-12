@@ -6,6 +6,20 @@ export interface Discipline {
   name: string;
   totalHours: number;
   requiredRoomType: RoomType;
+  disciplineCourses?: {
+    id: number;
+    course: {
+      id: number;
+      name: string;
+    };
+  }[];
+}
+
+export interface DisciplinePayload {
+  name: string;
+  totalHours: number;
+  requiredRoomType: RoomType;
+  courseId?: number;
 }
 
 export const disciplineService = {
@@ -29,6 +43,44 @@ export const disciplineService = {
           `Erro ao buscar disciplinas (${
             error.response?.status || "sem status"
           }): ${error.message}`
+      );
+    }
+  },
+
+  async createDiscipline(data: DisciplinePayload): Promise<Discipline> {
+    try {
+      const response = await api.post("/disciplines", data);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message ||
+          `Erro ao criar disciplina: ${error.message}`
+      );
+    }
+  },
+
+  async updateDiscipline(
+    id: number,
+    data: DisciplinePayload
+  ): Promise<Discipline> {
+    try {
+      const response = await api.put(`/disciplines/${id}`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message ||
+          `Erro ao atualizar disciplina: ${error.message}`
+      );
+    }
+  },
+
+  async deleteDiscipline(id: number): Promise<void> {
+    try {
+      await api.delete(`/disciplines/${id}`);
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message ||
+          `Erro ao excluir disciplina: ${error.message}`
       );
     }
   },

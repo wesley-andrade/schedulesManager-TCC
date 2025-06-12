@@ -45,10 +45,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     } catch (error) {
       toast({
         title: "Erro no login",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Usuário ou senha incorretos",
+        description: "Credenciais inválidas",
         variant: "destructive",
       });
     } finally {
@@ -98,9 +95,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
-              setErrors({ ...errors, password: undefined });
             }}
-            className={`h-12 pr-10 ${errors.password ? "border-red-500" : ""}`}
+            className="h-12 pr-10"
             required
           />
           <button
@@ -111,18 +107,6 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
-        {errors.password && errors.password.length > 0 && (
-          <div className="mt-2 space-y-1">
-            <p className="text-sm font-medium text-red-500">
-              A senha deve conter:
-            </p>
-            <ul className="text-sm text-red-500 list-disc list-inside space-y-1">
-              {errors.password.map((error, index) => (
-                <li key={index}>{error.message}</li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       <Button

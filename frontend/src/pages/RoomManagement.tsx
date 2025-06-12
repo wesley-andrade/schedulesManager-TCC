@@ -219,6 +219,13 @@ const RoomManagement = () => {
     }
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setFormErrors({});
+    }
+  };
+
   const filteredRooms = (rooms ?? []).filter((room) =>
     room.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -261,7 +268,7 @@ const RoomManagement = () => {
 
         <RoomDialog
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={handleDialogOpenChange}
           formData={formData}
           setFormData={setFormData}
           formErrors={formErrors}

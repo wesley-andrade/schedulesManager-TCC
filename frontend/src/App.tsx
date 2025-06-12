@@ -11,6 +11,8 @@ import RoomManagement from "./pages/RoomManagement";
 import ModuleManagement from "./pages/ModuleManagement";
 import ScheduleManagement from "@/pages/ScheduleManagement";
 import TeacherDisciplineManagement from "@/pages/TeacherDisciplineManagement";
+import DisciplineManagement from "@/pages/DisciplineManagement";
+import TeacherAvailabilityManagement from "@/pages/TeacherAvailabilityManagement";
 import { UserProvider } from "./contexts/UserContext";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -79,6 +81,22 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <TeacherDisciplineManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.DISCIPLINES}
+                element={
+                  <ProtectedRoute>
+                    <DisciplineManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.AVAILABILITIES}
+                element={
+                  <ProtectedRoute>
+                    <TeacherAvailabilityManagement />
                   </ProtectedRoute>
                 }
               />
