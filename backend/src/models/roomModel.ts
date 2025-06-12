@@ -25,7 +25,27 @@ const updateRoom = async (
 };
 
 const deleteRoom = async (id: number) => {
-  await prisma.room.delete({ where: { id } });
+  const room = await prisma.room.findUnique({
+    where: { id },
+    include: {
+      usages: true,
+    },
+  });
+
+  if (!room) {
+    throw new Error("Sala não encontrada");
+  }
+
+  if (room.usages.length > 0) {
+    throw new Error(
+      "Não é possível excluir esta sala pois ela possui agendamentos vinculados"
+    );
+  }
+
+  await prisma.room.delete({
+    where: { id },
+  });
+
   return true;
 };
 

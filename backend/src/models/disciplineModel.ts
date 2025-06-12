@@ -2,7 +2,15 @@ import prisma from "./prisma";
 import { RoomType } from "@prisma/client";
 
 const getAllDisciplines = async () => {
-  return await prisma.discipline.findMany();
+  return await prisma.discipline.findMany({
+    include: {
+      disciplineCourses: {
+        include: {
+          course: true,
+        },
+      },
+    },
+  });
 };
 
 const getDisciplineById = async (id: number) => {
@@ -40,7 +48,33 @@ const updateDiscipline = async (
 };
 
 const deleteDiscipline = async (id: number) => {
-  await prisma.discipline.delete({ where: { id } });
+  const discipline = await prisma.discipline.findUnique({
+    where: { id },
+    include: {
+      disciplineTeachers: true,
+      disciplineModules: true,
+      disciplineCourses: true,
+    },
+  });
+
+  if (!discipline) {
+    throw new Error("Disciplina não encontrada");
+  }
+
+  if (
+    discipline.disciplineTeachers.length > 0 ||
+    discipline.disciplineModules.length > 0 ||
+    discipline.disciplineCourses.length > 0
+  ) {
+    throw new Error(
+      "Não é possível excluir esta disciplina pois ela possui registros vinculados no sistema"
+    );
+  }
+
+  await prisma.discipline.delete({
+    where: { id },
+  });
+
   return true;
 };
 

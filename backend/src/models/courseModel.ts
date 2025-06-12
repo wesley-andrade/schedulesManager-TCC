@@ -30,9 +30,27 @@ const updateCourse = async (id: number, updates: { name: string }) => {
 };
 
 const deleteCourse = async (id: number) => {
+  const course = await prisma.course.findUnique({
+    where: { id },
+    include: {
+      disciplines: true,
+    },
+  });
+
+  if (!course) {
+    throw new Error("Curso não encontrado");
+  }
+
+  if (course.disciplines.length > 0) {
+    throw new Error(
+      "Não é possível excluir este curso pois ele possui disciplinas vinculadas"
+    );
+  }
+
   await prisma.course.delete({
     where: { id },
   });
+
   return true;
 };
 

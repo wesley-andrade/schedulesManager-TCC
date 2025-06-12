@@ -8,7 +8,22 @@ const getTimeSlotById = async (id: number) => {
   return await prisma.timeSlot.findUnique({ where: { id } });
 };
 
+const findTimeSlotByTimes = async (startTime: string, endTime: string) => {
+  return await prisma.timeSlot.findFirst({
+    where: {
+      startTime,
+      endTime,
+    },
+  });
+};
+
 const createTimeSlot = async (startTime: string, endTime: string) => {
+  const existingTimeSlot = await findTimeSlotByTimes(startTime, endTime);
+
+  if (existingTimeSlot) {
+    return existingTimeSlot;
+  }
+
   return await prisma.timeSlot.create({ data: { startTime, endTime } });
 };
 
@@ -30,4 +45,5 @@ export default {
   createTimeSlot,
   updateTimeSlot,
   deleteTimeSlot,
+  findTimeSlotByTimes,
 };

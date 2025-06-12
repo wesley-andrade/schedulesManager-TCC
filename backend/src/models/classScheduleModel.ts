@@ -19,8 +19,8 @@ const getAllClassSchedules = async (teacherId?: number) => {
         include: {
           teacher: {
             include: {
-              user: true
-            }
+              user: true,
+            },
           },
           discipline: true,
         },
@@ -78,8 +78,26 @@ const updateClassSchedule = async (
 };
 
 const deleteClassSchedule = async (id: number) => {
-  await prisma.classScheduleRoom.deleteMany({ where: { classScheduleId: id } });
-  await prisma.classSchedule.delete({ where: { id } });
+  const classSchedule = await prisma.classSchedule.findUnique({
+    where: { id },
+    include: {
+      rooms: true,
+    },
+  });
+
+  if (!classSchedule) {
+    throw new Error("Agendamento não encontrado");
+  }
+
+  if (classSchedule.rooms.length > 0) {
+    await prisma.classScheduleRoom.deleteMany({
+      where: { classScheduleId: id },
+    });
+  }
+
+  await prisma.classSchedule.delete({
+    where: { id },
+  });
 
   return true;
 };

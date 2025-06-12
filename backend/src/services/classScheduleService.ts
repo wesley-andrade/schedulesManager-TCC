@@ -139,6 +139,24 @@ async function generateSchedules(academicPeriodId: number) {
         });
         if (teacherConflict) continue;
 
+        const moduleConflict = await prisma.classSchedule.findFirst({
+          where: {
+            date: fullDateTime,
+            scheduleId: schedule.id,
+            disciplineTeacher: {
+              discipline: {
+                disciplineModules: {
+                  some: {
+                    moduleId: mod.id,
+                    academicPeriodId: academicPeriodId,
+                  },
+                },
+              },
+            },
+          },
+        });
+        if (moduleConflict) continue;
+
         const room = await prisma.room.findFirst({
           where: {
             type: discipline.requiredRoomType,

@@ -27,9 +27,27 @@ const updateModule = async (
 };
 
 const deleteModule = async (id: number) => {
+  const module = await prisma.module.findUnique({
+    where: { id },
+    include: {
+      disciplineModules: true,
+    },
+  });
+
+  if (!module) {
+    throw new Error("Módulo não encontrado");
+  }
+
+  if (module.disciplineModules.length > 0) {
+    throw new Error(
+      "Não é possível excluir este módulo pois ele possui disciplinas vinculadas"
+    );
+  }
+
   await prisma.module.delete({
     where: { id },
   });
+
   return true;
 };
 

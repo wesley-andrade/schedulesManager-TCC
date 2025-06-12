@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError, ZodIssueCode } from "zod";
 import { ValidationErrorDetail } from "../types";
+import { Prisma } from "@prisma/client";
 
 export function errorHandler(
   err: unknown,
@@ -38,54 +39,28 @@ export function errorHandler(
     return;
   }
 
-  if (
-    typeof err === "object" &&
-    err !== null &&
-    (err as any).code === "P2002"
-  ) {
-    const target = (err as any).meta?.target?.[0] || "campo único";
-    res.status(400).json({
-      message: `Já existe um registro com este valor para o campo ${target}`,
-    });
-    return;
-  }
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2003") {
+      res.status(400).json({
+        message:
+          "Não é possível excluir este registro pois ele possui registros vinculados no sistema",
+      });
+      return;
+    }
 
-  if (
-    typeof err === "object" &&
-    err !== null &&
-    (err as any).code === "P2025"
-  ) {
-    res.status(404).json({ message: "Registro não encontrado" });
-    return;
-  }
+    if (err.code === "P2025") {
+      res.status(404).json({
+        message: "Registro não encontrado",
+      });
+      return;
+    }
 
-  if (
-    typeof err === "object" &&
-    err !== null &&
-    (err as any).code === "P2003"
-  ) {
-    res.status(400).json({
-      message: "Referência inválida: o registro relacionado não existe",
-    });
-    return;
-  }
-
-  if (
-    typeof err === "object" &&
-    err !== null &&
-    (err as any).code === "P2011"
-  ) {
-    res.status(400).json({ message: "Campo obrigatório não pode ser nulo" });
-    return;
-  }
-
-  if (
-    typeof err === "object" &&
-    err !== null &&
-    ["P2004", "P2005", "P2006"].includes((err as any).code)
-  ) {
-    res.status(400).json({ message: "Valor inválido para o campo" });
-    return;
+    if (err.code === "P2002") {
+      res.status(400).json({
+        message: "Já existe um registro com este valor",
+      });
+      return;
+    }
   }
 
   if (err instanceof Error) {
