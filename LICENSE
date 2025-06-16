@@ -1,0 +1,42 @@
+Apache License 2.0
+
+Copyright (c) 2024 Wesley Andrade and Juan Fernandes
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+ADDITIONAL TERMS:
+
+1. Attribution:
+   - Any use of this software must include clear attribution to the original authors
+   - Attribution must include the names "Wesley Andrade" and "Juan Fernandes"
+   - Attribution must include a link to the original repository: https://github.com/wesley-andrade/schedulesManager-TCC
+
+2. Usage Notification:
+   - Before using this software in any commercial or non-commercial project, users must notify the original authors
+   - Notification must be sent to: wesleyandrade1217@gmail.com and mfernandes.juan@gmail.com
+   - Notification must include the purpose of use and project context
+
+3. Commercial Use:
+   - For commercial use, it is necessary to contact the authors to discuss licensing terms
+   - Commercial use without prior agreement with the authors is strictly prohibited
+   - Authors reserve the right to define specific terms for commercial use, including possible compensation
+
+4. Modifications:
+   - Modifications are allowed but must be documented
+   - Significant modifications must be communicated to the authors
+   - Modified code must maintain original attribution
+
+5. Distribution:
+   - Distribution is permitted but must include this complete license
+   - Distribution must maintain original attribution
+   - Commercial distribution requires prior agreement with the authors 
