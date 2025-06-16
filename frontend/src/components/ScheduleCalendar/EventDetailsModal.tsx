@@ -29,6 +29,8 @@ export function EventDetailsModal({
 }: EventDetailsModalProps) {
   if (!event) return null;
 
+  const [discipline, teacher, room, turma] = event.title.split(" - ");
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -37,13 +39,16 @@ export function EventDetailsModal({
         </DialogHeader>
         <div className="space-y-2">
           <div>
-            <b>Disciplina:</b> {event.title.split(" - ")[0]}
+            <b>Disciplina:</b> {discipline}
           </div>
           <div>
-            <b>Professor:</b> {event.title.split(" - ")[1]}
+            <b>Professor:</b> {teacher}
           </div>
           <div>
-            <b>Sala:</b> {event.title.split(" - ")[2]}
+            <b>Sala:</b> {room}
+          </div>
+          <div>
+            <b>Turma:</b> {turma}
           </div>
           <div>
             <b>Início:</b> {event.start.toLocaleString("pt-BR")}

@@ -24,7 +24,10 @@ async function generateSchedules(academicPeriodId: number) {
 
   const disciplineModules = await prisma.disciplineModule.findMany({
     where: { academicPeriodId },
-    select: { disciplineId: true },
+    select: {
+      disciplineId: true,
+      moduleId: true,
+    },
   });
   const disciplineIds = disciplineModules.map((dm) => dm.disciplineId);
 
@@ -66,133 +69,141 @@ async function generateSchedules(academicPeriodId: number) {
   for (const dt of disciplineTeachers) {
     const discipline = dt.discipline;
 
-    const dm = await prisma.disciplineModule.findFirst({
-      where: { disciplineId: dt.disciplineId, academicPeriodId },
-    });
-    if (!dm) continue;
-
-    const mod = await prisma.module.findUnique({ where: { id: dm.moduleId } });
-    if (!mod) continue;
-
-    let remainingHours = discipline.totalHours;
-    let currentDate = new Date(startDate);
-    currentDate.setHours(0, 0, 0, 0);
-    let lastScheduledDate: Date | null = null;
-
-    while (isBefore(currentDate, endDate) && remainingHours > 0) {
-      const isHoliday = holidays.find((h) =>
-        isSameDay(parseISO(h.date), currentDate)
-      );
-      if (isHoliday) {
-        currentDate = addDays(currentDate, 1);
-        continue;
+    const disciplineModuleAssociations = await prisma.disciplineModule.findMany(
+      {
+        where: {
+          disciplineId: dt.disciplineId,
+          academicPeriodId,
+        },
       }
+    );
 
-      const dayOfWeek = capitalize(
-        currentDate.toLocaleDateString("pt-BR", { weekday: "long" })
-      );
+    for (const dm of disciplineModuleAssociations) {
+      const mod = await prisma.module.findUnique({
+        where: { id: dm.moduleId },
+      });
+      if (!mod) continue;
 
-      const availableAvailabilities = await prisma.teacherAvailability.findMany(
-        {
-          where: {
-            teacherId: dt.teacherId,
-            status: true,
-            schedule: { dayOfWeek },
-          },
-          include: {
-            schedule: { include: { timeSlot: true } },
-          },
-          orderBy: {
-            schedule: { timeSlot: { startTime: "asc" } },
-          },
-        }
-      );
+      let remainingHours = discipline.totalHours;
+      let currentDate = new Date(startDate);
+      currentDate.setHours(0, 0, 0, 0);
+      let lastScheduledDate: Date | null = null;
 
-      for (const availability of availableAvailabilities) {
-        const schedule = availability.schedule;
-        if (!schedule) continue;
-
-        const timeSlot = await prisma.timeSlot.findUnique({
-          where: { id: schedule.timeSlotId },
-        });
-        const duration = timeSlot ? calculateDuration(timeSlot) : 1;
-
-        if (
-          lastScheduledDate &&
-          differenceInCalendarDays(currentDate, lastScheduledDate) <= 1
-        ) {
+      while (isBefore(currentDate, endDate) && remainingHours > 0) {
+        const isHoliday = holidays.find((h) =>
+          isSameDay(parseISO(h.date), currentDate)
+        );
+        if (isHoliday) {
+          currentDate = addDays(currentDate, 1);
           continue;
         }
 
-        const fullDateTime = parseISO(
-          `${format(currentDate, "yyyy-MM-dd")}T${timeSlot!.startTime}:00`
+        const dayOfWeek = capitalize(
+          currentDate.toLocaleDateString("pt-BR", { weekday: "long" })
         );
 
-        const teacherConflict = await prisma.classSchedule.findFirst({
-          where: {
-            date: fullDateTime,
-            scheduleId: schedule.id,
-            disciplineTeacher: {
+        const availableAvailabilities =
+          await prisma.teacherAvailability.findMany({
+            where: {
               teacherId: dt.teacherId,
+              status: true,
+              schedule: { dayOfWeek },
             },
-          },
-        });
-        if (teacherConflict) continue;
+            include: {
+              schedule: { include: { timeSlot: true } },
+            },
+            orderBy: {
+              schedule: { timeSlot: { startTime: "asc" } },
+            },
+          });
 
-        const moduleConflict = await prisma.classSchedule.findFirst({
-          where: {
-            date: fullDateTime,
-            scheduleId: schedule.id,
-            disciplineTeacher: {
-              discipline: {
-                disciplineModules: {
-                  some: {
-                    moduleId: mod.id,
-                    academicPeriodId: academicPeriodId,
+        for (const availability of availableAvailabilities) {
+          const schedule = availability.schedule;
+          if (!schedule) continue;
+
+          const timeSlot = await prisma.timeSlot.findUnique({
+            where: { id: schedule.timeSlotId },
+          });
+          const duration = timeSlot ? calculateDuration(timeSlot) : 1;
+
+          if (
+            lastScheduledDate &&
+            differenceInCalendarDays(currentDate, lastScheduledDate) <= 1
+          ) {
+            continue;
+          }
+
+          const fullDateTime = parseISO(
+            `${format(currentDate, "yyyy-MM-dd")}T${timeSlot!.startTime}:00`
+          );
+
+          const teacherConflict = await prisma.classSchedule.findFirst({
+            where: {
+              date: fullDateTime,
+              scheduleId: schedule.id,
+              disciplineTeacher: {
+                teacherId: dt.teacherId,
+              },
+            },
+          });
+          if (teacherConflict) continue;
+
+          const moduleConflict = await prisma.classSchedule.findFirst({
+            where: {
+              date: fullDateTime,
+              scheduleId: schedule.id,
+              disciplineTeacher: {
+                discipline: {
+                  disciplineModules: {
+                    some: {
+                      moduleId: mod.id,
+                      academicPeriodId: academicPeriodId,
+                    },
                   },
                 },
               },
             },
-          },
-        });
-        if (moduleConflict) continue;
+          });
+          if (moduleConflict) continue;
 
-        const room = await prisma.room.findFirst({
-          where: {
-            type: discipline.requiredRoomType,
-            seatsAmount: { gte: mod.totalStudents },
-            usages: {
-              none: {
-                date: fullDateTime,
-                scheduleId: schedule.id,
+          const room = await prisma.room.findFirst({
+            where: {
+              type: discipline.requiredRoomType,
+              seatsAmount: { gte: mod.totalStudents },
+              usages: {
+                none: {
+                  date: fullDateTime,
+                  scheduleId: schedule.id,
+                },
               },
             },
-          },
-        });
-        if (!room) continue;
+          });
+          if (!room) continue;
 
-        const newSchedule = await prisma.classSchedule.create({
-          data: {
-            scheduleId: schedule.id,
-            disciplineTeacherId: dt.id,
-            date: fullDateTime,
-          },
-        });
+          const newSchedule = await prisma.classSchedule.create({
+            data: {
+              scheduleId: schedule.id,
+              disciplineTeacherId: dt.id,
+              moduleId: mod.id,
+              date: fullDateTime,
+            },
+          });
 
-        await prisma.classScheduleRoom.create({
-          data: {
-            classScheduleId: newSchedule.id,
-            roomId: room.id,
-            scheduleId: schedule.id,
-            date: fullDateTime,
-          },
-        });
+          await prisma.classScheduleRoom.create({
+            data: {
+              classScheduleId: newSchedule.id,
+              roomId: room.id,
+              scheduleId: schedule.id,
+              date: fullDateTime,
+            },
+          });
 
-        lastScheduledDate = new Date(currentDate);
-        remainingHours -= duration;
+          lastScheduledDate = new Date(currentDate);
+          remainingHours -= duration;
+        }
+
+        currentDate = addDays(currentDate, 1);
       }
-
-      currentDate = addDays(currentDate, 1);
     }
   }
 

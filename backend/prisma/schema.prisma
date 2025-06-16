@@ -66,9 +66,11 @@ model ClassSchedule {
   id                  Int                 @id @default(autoincrement())
   scheduleId          Int
   disciplineTeacherId Int
+  moduleId            Int
   date                DateTime
   schedule            Schedule            @relation(fields: [scheduleId], references: [id])
   disciplineTeacher   DisciplineTeacher   @relation(fields: [disciplineTeacherId], references: [id])
+  module              Module              @relation(fields: [moduleId], references: [id])
   rooms               ClassScheduleRoom[]
 }
 
@@ -114,6 +116,7 @@ model Module {
   name              String
   totalStudents     Int
   disciplineModules DisciplineModule[]
+  classSchedules    ClassSchedule[]
 }
 
 model DisciplineCourse {

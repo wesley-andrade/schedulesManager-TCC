@@ -9,7 +9,12 @@ const getAllClassSchedules = async (teacherId?: number) => {
           },
         }
       : undefined,
-    include: {
+    select: {
+      id: true,
+      scheduleId: true,
+      disciplineTeacherId: true,
+      moduleId: true,
+      date: true,
       schedule: {
         include: {
           timeSlot: true,
@@ -22,7 +27,15 @@ const getAllClassSchedules = async (teacherId?: number) => {
               user: true,
             },
           },
-          discipline: true,
+          discipline: {
+            include: {
+              disciplineModules: {
+                include: {
+                  module: true,
+                },
+              },
+            },
+          },
         },
       },
       rooms: {
@@ -48,10 +61,11 @@ const getClassScheduleById = async (id: number) => {
 const createClassSchedule = async (
   scheduleId: number,
   disciplineTeacherId: number,
+  moduleId: number,
   date: string
 ) => {
   return await prisma.classSchedule.create({
-    data: { scheduleId, disciplineTeacherId, date: new Date(date) },
+    data: { scheduleId, disciplineTeacherId, moduleId, date: new Date(date) },
   });
 };
 

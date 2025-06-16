@@ -27,7 +27,15 @@ export const formatScheduleEvent = (item: any): ScheduleEvent | null => {
     const roomName = item.rooms?.[0]?.room?.name || "?";
     const teacherName =
       item.disciplineTeacher?.teacher?.user?.name || "Sem Professor";
-    const title = `${disciplineName} - ${teacherName} - Sala ${roomName}`;
+
+    const disciplineModules =
+      item.disciplineTeacher?.discipline?.disciplineModules || [];
+
+    const moduleName =
+      disciplineModules.find((dm: any) => dm.module?.id === item.moduleId)
+        ?.module?.name || "Sem Turma";
+
+    const title = `${disciplineName} - ${teacherName} - Sala ${roomName} - ${moduleName}`;
 
     return {
       id: item.id,
