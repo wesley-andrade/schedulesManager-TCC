@@ -83,13 +83,25 @@ const Index = () => {
 
     try {
       setIsGenerating(true);
-      await api.post(
-        `/class-schedules/generate?academicPeriodId=${selectedPeriod}`
+      const response = await api.post(
+        `/class-schedules/generate?academicPeriodId=${selectedPeriod}`,
+        {},
+        { responseType: "blob" }
       );
 
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "relatorio_horarios.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
       toast({
-        title: "Aulas geradas com sucesso!",
-        description: "O calendário será atualizado em instantes.",
+        title: "Relatório gerado com sucesso!",
+        description: "O PDF foi baixado.",
       });
 
       triggerRefresh();
@@ -98,9 +110,8 @@ const Index = () => {
     } catch (error) {
       console.error("Erro ao gerar aulas:", error);
       toast({
-        title: "Erro ao gerar aulas",
-        description:
-          "Ocorreu um erro ao tentar gerar as aulas. Tente novamente.",
+        title: "Erro ao gerar relatório",
+        description: "Ocorreu um erro ao tentar gerar o PDF. Tente novamente.",
         variant: "destructive",
       });
     } finally {
