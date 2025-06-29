@@ -9,6 +9,7 @@ import {
   differenceInCalendarDays,
 } from "date-fns";
 import { TimeSlot } from "../types";
+import { Response } from "express";
 
 async function generateSchedules(academicPeriodId: number) {
   const academicPeriod = await prisma.academicPeriod.findUnique({
@@ -24,16 +25,23 @@ async function generateSchedules(academicPeriodId: number) {
 
   const disciplineModules = await prisma.disciplineModule.findMany({
     where: { academicPeriodId },
-    select: {
-      disciplineId: true,
-      moduleId: true,
-    },
+    include: { discipline: true, module: true },
   });
+
+  const totalHours = disciplineModules.reduce(
+    (acc, dm) => acc + (dm.discipline?.totalHours || 0),
+    0
+  );
   const disciplineIds = disciplineModules.map((dm) => dm.disciplineId);
+
+  const teachers = await prisma.teacher.findMany({ include: { user: true } });
+  const disciplines = await prisma.discipline.findMany({
+    where: { id: { in: disciplineIds } },
+  });
 
   const disciplineTeachers = await prisma.disciplineTeacher.findMany({
     where: { disciplineId: { in: disciplineIds } },
-    include: { teacher: true, discipline: true },
+    include: { teacher: { include: { user: true } }, discipline: true },
   });
 
   await prisma.classScheduleRoom.deleteMany({
@@ -66,42 +74,40 @@ async function generateSchedules(academicPeriodId: number) {
     },
   });
 
+  let totalCreated = 0;
+  let totalNotCreated = 0;
+  let failures: Array<any> = [];
+
   for (const dt of disciplineTeachers) {
     const discipline = dt.discipline;
-
-    const disciplineModuleAssociations = await prisma.disciplineModule.findMany(
-      {
-        where: {
-          disciplineId: dt.disciplineId,
-          academicPeriodId,
-        },
-      }
+    const teacher = dt.teacher;
+    const disciplineModuleAssociations = disciplineModules.filter(
+      (dm) => dm.disciplineId === dt.disciplineId
     );
 
     for (const dm of disciplineModuleAssociations) {
-      const mod = await prisma.module.findUnique({
-        where: { id: dm.moduleId },
-      });
-      if (!mod) continue;
-
+      const mod = dm.module;
       let remainingHours = discipline.totalHours;
       let currentDate = new Date(startDate);
       currentDate.setHours(0, 0, 0, 0);
       let lastScheduledDate: Date | null = null;
+      let createdForThisModule = false;
+      let reasonFailure = "";
+      let scheduledHours = 0;
+      let unscheduledHours = 0;
 
       while (isBefore(currentDate, endDate) && remainingHours > 0) {
         const isHoliday = holidays.find((h) =>
           isSameDay(parseISO(h.date), currentDate)
         );
+
         if (isHoliday) {
           currentDate = addDays(currentDate, 1);
           continue;
         }
-
         const dayOfWeek = capitalize(
           currentDate.toLocaleDateString("pt-BR", { weekday: "long" })
         );
-
         const availableAvailabilities =
           await prisma.teacherAvailability.findMany({
             where: {
@@ -117,33 +123,28 @@ async function generateSchedules(academicPeriodId: number) {
             },
           });
 
+        let scheduled = false;
         for (const availability of availableAvailabilities) {
           const schedule = availability.schedule;
           if (!schedule) continue;
-
           const timeSlot = await prisma.timeSlot.findUnique({
             where: { id: schedule.timeSlotId },
           });
           const duration = timeSlot ? calculateDuration(timeSlot) : 1;
-
           if (
             lastScheduledDate &&
             differenceInCalendarDays(currentDate, lastScheduledDate) <= 1
           ) {
             continue;
           }
-
           const fullDateTime = parseISO(
             `${format(currentDate, "yyyy-MM-dd")}T${timeSlot!.startTime}:00`
           );
-
           const teacherConflict = await prisma.classSchedule.findFirst({
             where: {
               date: fullDateTime,
               scheduleId: schedule.id,
-              disciplineTeacher: {
-                teacherId: dt.teacherId,
-              },
+              disciplineTeacher: { teacherId: dt.teacherId },
             },
           });
           if (teacherConflict) continue;
@@ -178,7 +179,10 @@ async function generateSchedules(academicPeriodId: number) {
               },
             },
           });
-          if (!room) continue;
+          if (!room) {
+            reasonFailure = "Sem sala disponível";
+            continue;
+          }
 
           const newSchedule = await prisma.classSchedule.create({
             data: {
@@ -200,14 +204,38 @@ async function generateSchedules(academicPeriodId: number) {
 
           lastScheduledDate = new Date(currentDate);
           remainingHours -= duration;
+          scheduledHours += duration;
+          totalCreated += duration;
+          createdForThisModule = true;
+          scheduled = true;
         }
-
         currentDate = addDays(currentDate, 1);
+      }
+
+      if (remainingHours > 0) {
+        totalNotCreated += remainingHours;
+        unscheduledHours = remainingHours;
+        failures.push({
+          disciplines: discipline.name,
+          module: mod.name,
+          teacher: teacher.user?.name || "-",
+          contact: teacher.phone || "-",
+          hours: unscheduledHours,
+          reason: reasonFailure || "Sem disponibilidade de horário ou conflito",
+        });
       }
     }
   }
 
-  return { message: "Aulas geradas com sucesso!" };
+  return {
+    message: "Aulas geradas com sucesso!",
+    totalCreated: totalCreated,
+    totalNotCreated: totalNotCreated,
+    failues: failures,
+    totalDisciplines: disciplines.length,
+    totalTeachers: teachers.length,
+    totalHours: totalHours,
+  };
 }
 
 async function updateClassSchedule(
@@ -388,7 +416,72 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+async function generateSchedulesPDF(academicPeriodId: number, res: Response) {
+  const academicPeriod = await prisma.academicPeriod.findUnique({
+    where: { id: academicPeriodId },
+  });
+  if (!academicPeriod) throw new Error("Período letivo não encontrado");
+  const result = await generateSchedules(academicPeriodId);
+  const reasonFailure: Record<string, number> = {};
+  result.failues.forEach((f) => {
+    reasonFailure[f.reason] = (reasonFailure[f.reason] || 0) + 1;
+  });
+
+  const PDFDocument = (await import("pdfkit")).default;
+  const doc = new PDFDocument({ size: "A4", margin: 50 });
+  doc.pipe(res);
+  doc
+    .fontSize(22)
+    .text("Relatório de Geração de Horários", { align: "center" });
+  doc.moveDown();
+  doc.fontSize(14).text(`Período Letivo: ${academicPeriod.name}`);
+  doc.text(
+    `De ${format(academicPeriod.startDate, "dd/MM/yyyy")} até ${format(
+      academicPeriod.endDate,
+      "dd/MM/yyyy"
+    )}`
+  );
+  doc.moveDown();
+  doc.fontSize(16).text("Estatísticas Gerais", { underline: true });
+  doc.moveDown(0.5);
+  doc.fontSize(12).text(`Total de Disciplinas: ${result.totalDisciplines}`);
+  doc.text(`Total de Professores: ${result.totalTeachers}`);
+  doc.text(`Total de Horas: ${result.totalHours}`);
+  doc.text(`Horas Agendadas: ${result.totalCreated}`);
+  doc.text(`Horas Não Agendadas: ${result.totalNotCreated}`);
+  doc.moveDown();
+  doc.fontSize(16).text("Razões de Não Agendamento", { underline: true });
+  doc.moveDown(0.5);
+  if (Object.keys(reasonFailure).length === 0) {
+    doc.fontSize(12).text("Nenhuma falha registrada.");
+  } else {
+    Object.entries(reasonFailure).forEach(([reason, qtd]) => {
+      doc.fontSize(12).text(`${reason}: ${qtd} ocorrência(s)`);
+    });
+  }
+  doc.moveDown();
+  doc
+    .fontSize(16)
+    .text("Detalhes das Disciplinas Não Agendadas", { underline: true });
+  doc.moveDown(0.5);
+  if (result.failues.length === 0) {
+    doc.fontSize(12).text("Nenhuma disciplina não agendada.");
+  } else {
+    result.failues.forEach((det) => {
+      doc.fontSize(12).text(`Disciplina: ${det.disciplines}`);
+      doc.text(`Turma: ${det.module}`);
+      doc.text(`Professor: ${det.teacher}`);
+      doc.text(`Contato: ${det.contact}`);
+      doc.text(`Horas não agendadas: ${det.hours}`);
+      doc.text(`Motivo: ${det.reason}`);
+      doc.moveDown();
+    });
+  }
+  doc.end();
+}
+
 export default {
   generateSchedules,
   updateClassSchedule,
+  generateSchedulesPDF,
 };

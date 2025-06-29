@@ -35,11 +35,12 @@ const generateSchedules = async (
 ) => {
   try {
     const academicPeriodId = parseInt(req.query.academicPeriodId as string);
-    const result = await classScheduleService.generateSchedules(
-      academicPeriodId
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=relatorio_horarios.pdf"
     );
-
-    res.status(201).json(result);
+    await classScheduleService.generateSchedulesPDF(academicPeriodId, res);
     return;
   } catch (err) {
     next(err);
