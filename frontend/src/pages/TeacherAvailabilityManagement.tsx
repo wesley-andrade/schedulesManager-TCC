@@ -20,24 +20,35 @@ export default function TeacherAvailabilityManagement() {
   const { toast } = useToast();
   const { currentUser } = useUser();
   const [availabilities, setAvailabilities] = useState<TeacherAvailability[]>(
-    []
+    [],
   );
   const [teachers, setTeachers] = useState<{ id: number; name: string }[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(
-    null
+    null,
   );
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (!currentUser) {
-      navigate(ROUTES.LOGIN);
+      navigate(ROUTES.HOME);
+      return;
+    }
+
+    if (currentUser.role !== "admin") {
+      toast({
+        title: "Erro",
+        description: "Apenas administradores podem acessar esta página",
+        variant: "destructive",
+      });
+
+      navigate(ROUTES.DASHBOARD);
       return;
     }
 
     loadData();
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, toast]);
 
   const loadData = async () => {
     try {
@@ -50,12 +61,14 @@ export default function TeacherAvailabilityManagement() {
         ]);
 
       setAvailabilities(availabilitiesData);
+
       setTeachers(
         teachersData.map((t) => ({
           id: t.id,
           name: t.user?.name || "",
-        }))
+        })),
       );
+
       setSchedules(schedulesData);
     } catch (error) {
       toast({
@@ -74,7 +87,7 @@ export default function TeacherAvailabilityManagement() {
 
   const handleAvailabilityChange = async (
     scheduleId: number,
-    status: boolean
+    status: boolean,
   ) => {
     if (!selectedTeacherId) {
       toast({
@@ -82,21 +95,24 @@ export default function TeacherAvailabilityManagement() {
         description: "Selecione um professor primeiro",
         variant: "destructive",
       });
+
       return;
     }
 
     try {
       const existingAvailability = availabilities.find(
-        (a) => a.teacherId === selectedTeacherId && a.scheduleId === scheduleId
+        (a) => a.teacherId === selectedTeacherId && a.scheduleId === scheduleId,
       );
 
       if (existingAvailability) {
         await teacherAvailabilityService.deleteTeacherAvailability(
-          existingAvailability.id
+          existingAvailability.id,
         );
-        setAvailabilities(
-          availabilities.filter((a) => a.id !== existingAvailability.id)
+
+        setAvailabilities((prev) =>
+          prev.filter((a) => a.id !== existingAvailability.id),
         );
+
         toast({
           title: "Sucesso",
           description: "Disponibilidade removida com sucesso",
@@ -106,9 +122,11 @@ export default function TeacherAvailabilityManagement() {
           await teacherAvailabilityService.createTeacherAvailability(
             selectedTeacherId,
             scheduleId,
-            true
+            true,
           );
-        setAvailabilities([...availabilities, newAvailability]);
+
+        setAvailabilities((prev) => [...prev, newAvailability]);
+
         toast({
           title: "Sucesso",
           description: "Disponibilidade adicionada com sucesso",
@@ -128,7 +146,7 @@ export default function TeacherAvailabilityManagement() {
   };
 
   const filteredTeachers = teachers.filter((teacher) =>
-    teacher.name.toLowerCase().includes(searchTerm.toLowerCase())
+    teacher.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

@@ -1,6 +1,5 @@
 export const ROUTES = {
   HOME: "/",
-  LOGIN: "/login",
   DASHBOARD: "/dashboard",
   USERS: "/users",
   ACADEMIC_PERIODS: "/academic-periods",
@@ -12,9 +11,9 @@ export const ROUTES = {
   TEACHER_DISCIPLINES: "/teacher-disciplines",
 } as const;
 
-export const PUBLIC_ROUTES = [ROUTES.LOGIN] as const;
+export const PUBLIC_ROUTES = [ROUTES.HOME] as const;
+
 export const PROTECTED_ROUTES = [
-  ROUTES.HOME,
   ROUTES.DASHBOARD,
   ROUTES.USERS,
   ROUTES.ACADEMIC_PERIODS,
