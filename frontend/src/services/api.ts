@@ -1,3 +1,4 @@
+import { ROUTES } from "@/config/routes";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
@@ -13,3 +14,18 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isLoginRequest = error.config?.url?.includes("/auth/login");
+
+    if (error.response?.status === 401 && !isLoginRequest) {
+      localStorage.removeItem("timewise_token");
+      localStorage.removeItem("user");
+      window.location.assign(ROUTES.HOME);
+    }
+
+    return Promise.reject(error);
+  },
+);

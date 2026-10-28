@@ -63,7 +63,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
       email,
       hashedPassword,
       role,
-      phone
+      phone,
     );
 
     const { password: _, ...userWithoutPassword } = newUser;
@@ -116,7 +116,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 const changePassword = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const userId = req.user?.id;
@@ -136,10 +136,10 @@ const changePassword = async (
 
     const isPasswordCorrect = await bcrypt.compare(
       currentPassword,
-      user.password
+      user.password,
     );
     if (!isPasswordCorrect) {
-      res.status(401).json({ message: "Senha atual incorreta" });
+      res.status(400).json({ message: "Senha atual incorreta" });
       return;
     }
 

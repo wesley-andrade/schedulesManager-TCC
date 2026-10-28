@@ -10,9 +10,10 @@ interface HeaderProps {
 
 const Header = ({ showLogout = true }: HeaderProps) => {
   const navigate = useNavigate();
-  const { currentUser } = useUser();
+  const { currentUser, logout } = useUser();
 
   const handleLogout = () => {
+    logout();
     navigate(ROUTES.HOME);
   };
 

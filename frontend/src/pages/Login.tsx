@@ -1,11 +1,20 @@
 import { useEffect } from "react";
 import Logo from "@/components/Logo";
 import LoginForm from "@/components/LoginForm";
+import { useUser } from "@/contexts/UserContext";
+import { Navigate } from "react-router-dom";
+import { ROUTES } from "@/config/routes";
 
 const Login = () => {
+  const { isAuthenticated } = useUser();
+
   useEffect(() => {
     document.title = "TimeWise - Login";
   }, []);
+
+  if (isAuthenticated) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
+  }
 
   return (
     <div className="min-h-screen flex">
