@@ -26,6 +26,16 @@ import { Button } from "@/components/ui/button";
 import { User } from "@/services/userService";
 import { useCalendar } from "@/contexts/CalendarContext";
 import { CalendarPlus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Index = () => {
   const { currentUser } = useUser();
@@ -38,21 +48,17 @@ const Index = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const navigate = useNavigate();
-
-  if (!currentUser) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-600">Carregando usuário...</div>
-      </div>
-    );
-  }
 
   useEffect(() => {
     document.title = "TimeWise - Página Principal";
-    fetchDashboardData();
-    fetchAcademicPeriods();
-  }, []);
+
+    if (currentUser?.role === "admin") {
+      fetchDashboardData();
+      fetchAcademicPeriods();
+    }
+  }, [currentUser?.role]);
 
   const fetchDashboardData = async () => {
     try {
@@ -80,17 +86,18 @@ const Index = () => {
 
   const handleGenerateSchedules = async () => {
     if (!selectedPeriod) return;
+    setIsConfirmOpen(false);
 
     try {
       setIsGenerating(true);
       const response = await api.post(
         `/class-schedules/generate?academicPeriodId=${selectedPeriod}`,
         {},
-        { responseType: "blob" }
+        { responseType: "blob" },
       );
 
       const url = window.URL.createObjectURL(
-        new Blob([response.data], { type: "application/pdf" })
+        new Blob([response.data], { type: "application/pdf" }),
       );
       const link = document.createElement("a");
       link.href = url;
@@ -107,17 +114,37 @@ const Index = () => {
       triggerRefresh();
       setIsDialogOpen(false);
       setSelectedPeriod("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao gerar aulas:", error);
+
+      let description =
+        "Ocorreu um erro ao tentar gerar o PDF. Tente novamente.";
+      const data = error?.response?.data;
+
+      if (data instanceof Blob) {
+        try {
+          const parsed = JSON.parse(await data.text());
+          description = parsed.message ?? description;
+        } catch {}
+      }
+
       toast({
         title: "Erro ao gerar relatório",
-        description: "Ocorreu um erro ao tentar gerar o PDF. Tente novamente.",
+        description,
         variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
     }
   };
+
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-gray-600">Carregando usuário...</div>
+      </div>
+    );
+  }
 
   const user: User = {
     ...currentUser,
@@ -170,7 +197,10 @@ const Index = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {academicPeriods.map((period) => (
-                              <SelectItem key={period.id} value={period.id}>
+                              <SelectItem
+                                key={period.id}
+                                value={String(period.id)}
+                              >
                                 {period.name}
                               </SelectItem>
                             ))}
@@ -178,7 +208,7 @@ const Index = () => {
                         </Select>
                       </div>
                       <Button
-                        onClick={handleGenerateSchedules}
+                        onClick={() => setIsConfirmOpen(true)}
                         disabled={!selectedPeriod || isGenerating}
                         className="w-full"
                       >
@@ -202,6 +232,39 @@ const Index = () => {
           )}
         </div>
       </div>
+
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent className="sm:max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Gerar horários?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Todas as aulas já geradas para este período, inclusive edições
+              manuais, serão apagadas e recriadas. Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setIsConfirmOpen(false);
+                setIsDialogOpen(false);
+                setSelectedPeriod("");
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                handleGenerateSchedules();
+              }}
+              disabled={isGenerating}
+            >
+              {isGenerating ? "Gerando..." : "Gerar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
