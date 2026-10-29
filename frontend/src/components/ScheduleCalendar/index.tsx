@@ -32,12 +32,12 @@ function ScheduleCalendarComponent({ userId, role }: ScheduleCalendarProps) {
   const [view, setView] = useState(Views.MONTH);
   const { toast } = useToast();
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(
-    null
+    null,
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<ScheduleEvent | null>(
-    null
+    null,
   );
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editDate, setEditDate] = useState<string>("");
@@ -76,11 +76,7 @@ function ScheduleCalendarComponent({ userId, role }: ScheduleCalendarProps) {
       try {
         setLoading(true);
         setError(null);
-        const { data: classSchedulesData } = await api.get(
-          role === "standard" && userId
-            ? `/class-schedules?teacherId=${userId}`
-            : "/class-schedules"
-        );
+        const { data: classSchedulesData } = await api.get("/class-schedules");
 
         if (!Array.isArray(classSchedulesData)) throw new Error();
         const formatScheduleEvents = classSchedulesData
@@ -119,7 +115,7 @@ function ScheduleCalendarComponent({ userId, role }: ScheduleCalendarProps) {
     setEditError(null);
     try {
       const selectedSchedule = schedules.find(
-        (s: any) => s.id === editScheduleId
+        (s: any) => s.id === editScheduleId,
       );
 
       if (!selectedSchedule || !selectedSchedule.timeSlot) {
@@ -137,11 +133,7 @@ function ScheduleCalendarComponent({ userId, role }: ScheduleCalendarProps) {
       setModalOpen(false);
       setEditLoading(false);
       toast({ title: "Aula editada com sucesso!" });
-      const { data: classSchedulesData } = await api.get(
-        role === "standard" && userId
-          ? `/class-schedules?teacherId=${userId}`
-          : "/class-schedules"
-      );
+      const { data: classSchedulesData } = await api.get("/class-schedules");
       const formatScheduleEvents = classSchedulesData
         .map(formatScheduleEvent)
         .filter((event: any): event is ScheduleEvent => event !== null);

@@ -5,17 +5,20 @@ import prisma from "../models/prisma";
 
 const index = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.query.teacherId
-      ? parseInt(req.query.teacherId as string)
-      : undefined;
     let teacherId: number | undefined;
 
-    if (userId) {
+    if (req.user?.role !== "admin") {
       const teacher = await prisma.teacher.findUnique({
-        where: { userId },
+        where: { userId: req.user!.id },
         select: { id: true },
       });
-      teacherId = teacher?.id;
+
+      if (!teacher) {
+        res.status(200).json([]);
+        return;
+      }
+
+      teacherId = teacher.id;
     }
 
     const result = await classScheduleModel.getAllClassSchedules(teacherId);
@@ -31,15 +34,15 @@ const index = async (req: Request, res: Response, next: NextFunction) => {
 const generateSchedules = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const academicPeriodId = parseInt(req.query.academicPeriodId as string);
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=relatorio_horarios.pdf"
-    );
+    if (isNaN(academicPeriodId)) {
+      res.status(400).json({ message: "Período acadêmico inválido" });
+      return;
+    }
+
     await classScheduleService.generateSchedulesPDF(academicPeriodId, res);
     return;
   } catch (err) {
@@ -51,6 +54,11 @@ const generateSchedules = async (
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
     const result = await classScheduleService.updateClassSchedule(id, req.body);
 
     res.status(200).json(result);

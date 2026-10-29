@@ -30,7 +30,7 @@ async function generateSchedules(academicPeriodId: number) {
 
   const totalHours = disciplineModules.reduce(
     (acc, dm) => acc + (dm.discipline?.totalHours || 0),
-    0
+    0,
   );
   const disciplineIds = disciplineModules.map((dm) => dm.disciplineId);
 
@@ -82,7 +82,7 @@ async function generateSchedules(academicPeriodId: number) {
     const discipline = dt.discipline;
     const teacher = dt.teacher;
     const disciplineModuleAssociations = disciplineModules.filter(
-      (dm) => dm.disciplineId === dt.disciplineId
+      (dm) => dm.disciplineId === dt.disciplineId,
     );
 
     for (const dm of disciplineModuleAssociations) {
@@ -98,7 +98,7 @@ async function generateSchedules(academicPeriodId: number) {
 
       while (isBefore(currentDate, endDate) && remainingHours > 0) {
         const isHoliday = holidays.find((h) =>
-          isSameDay(parseISO(h.date), currentDate)
+          isSameDay(parseISO(h.date), currentDate),
         );
 
         if (isHoliday) {
@@ -106,7 +106,7 @@ async function generateSchedules(academicPeriodId: number) {
           continue;
         }
         const dayOfWeek = capitalize(
-          currentDate.toLocaleDateString("pt-BR", { weekday: "long" })
+          currentDate.toLocaleDateString("pt-BR", { weekday: "long" }),
         );
         const availableAvailabilities =
           await prisma.teacherAvailability.findMany({
@@ -138,7 +138,7 @@ async function generateSchedules(academicPeriodId: number) {
             continue;
           }
           const fullDateTime = parseISO(
-            `${format(currentDate, "yyyy-MM-dd")}T${timeSlot!.startTime}:00`
+            `${format(currentDate, "yyyy-MM-dd")}T${timeSlot!.startTime}:00`,
           );
           const teacherConflict = await prisma.classSchedule.findFirst({
             where: {
@@ -240,7 +240,7 @@ async function generateSchedules(academicPeriodId: number) {
 
 async function updateClassSchedule(
   id: number,
-  data: { scheduleId: number; date: string }
+  data: { scheduleId: number; date: string },
 ) {
   const { scheduleId, date } = data;
   const dateObj = parseISO(date);
@@ -275,18 +275,18 @@ async function updateClassSchedule(
   }
 
   const periodStart = parseISO(
-    disciplineModule.academicPeriod.startDate.toISOString()
+    disciplineModule.academicPeriod.startDate.toISOString(),
   );
   const periodEnd = parseISO(
-    disciplineModule.academicPeriod.endDate.toISOString()
+    disciplineModule.academicPeriod.endDate.toISOString(),
   );
 
   if (dateObj < periodStart) {
     throw new Error(
       `A data não pode ser anterior ao início do período (${format(
         periodStart,
-        "dd/MM/yyyy"
-      )})`
+        "dd/MM/yyyy",
+      )})`,
     );
   }
 
@@ -294,8 +294,8 @@ async function updateClassSchedule(
     throw new Error(
       `A data não pode ser posterior ao fim do período (${format(
         periodEnd,
-        "dd/MM/yyyy"
-      )})`
+        "dd/MM/yyyy",
+      )})`,
     );
   }
 
@@ -312,17 +312,17 @@ async function updateClassSchedule(
   }
 
   const dayOfWeek = capitalize(
-    dateObj.toLocaleDateString("pt-BR", { weekday: "long" })
+    dateObj.toLocaleDateString("pt-BR", { weekday: "long" }),
   );
 
   if (dayOfWeek !== schedule.dayOfWeek) {
     throw new Error(
-      `Este horário só pode ser alocado em ${schedule.dayOfWeek}`
+      `Este horário só pode ser alocado em ${schedule.dayOfWeek}`,
     );
   }
 
   const fullDateTime = parseISO(
-    `${format(dateObj, "yyyy-MM-dd")}T${schedule.timeSlot.startTime}:00`
+    `${format(dateObj, "yyyy-MM-dd")}T${schedule.timeSlot.startTime}:00`,
   );
 
   const startOfDay = new Date(dateObj);
@@ -429,6 +429,12 @@ async function generateSchedulesPDF(academicPeriodId: number, res: Response) {
 
   const PDFDocument = (await import("pdfkit")).default;
   const doc = new PDFDocument({ size: "A4", margin: 50 });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=relatorio_horarios.pdf",
+  );
+
   doc.pipe(res);
   doc
     .fontSize(22)
@@ -438,8 +444,8 @@ async function generateSchedulesPDF(academicPeriodId: number, res: Response) {
   doc.text(
     `De ${format(academicPeriod.startDate, "dd/MM/yyyy")} até ${format(
       academicPeriod.endDate,
-      "dd/MM/yyyy"
-    )}`
+      "dd/MM/yyyy",
+    )}`,
   );
   doc.moveDown();
   doc.fontSize(16).text("Estatísticas Gerais", { underline: true });
