@@ -18,7 +18,7 @@ export const userService = {
       if (!response.data.users) {
         console.warn(
           "Resposta da API não contém a propriedade 'users':",
-          response.data
+          response.data,
         );
         throw new Error("Formato de resposta inválido da API");
       }
@@ -31,7 +31,7 @@ export const userService = {
 
       if (error.response?.status === 403) {
         throw new Error(
-          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar usuários."
+          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar usuários.",
         );
       }
 
@@ -39,7 +39,7 @@ export const userService = {
         error.response?.data?.message ||
           `Erro ao buscar usuários (${
             error.response?.status || "sem status"
-          }): ${error.message}`
+          }): ${error.message}`,
       );
     }
   },
@@ -49,7 +49,7 @@ export const userService = {
       await api.delete(`/users/${id}`);
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Erro ao excluir usuário"
+        error.response?.data?.message || "Erro ao excluir usuário",
       );
     }
   },
@@ -69,7 +69,7 @@ export const userService = {
       const response = await api.put(`/users/${id}`, dataToSend);
       return response.data;
     } catch (error) {
-      if (error.response?.status === 400 || error.response?.status === 409) {
+      if (error.response?.status === 409) {
         throw new Error("email já está cadastrado");
       }
       if (error.response?.data?.message) {
@@ -77,7 +77,7 @@ export const userService = {
         if (
           errorMessage.includes("email já existe") ||
           errorMessage.includes(
-            "já existe um registro com este valor para o campo email"
+            "já existe um registro com este valor para o campo email",
           )
         ) {
           throw new Error("email já está cadastrado");
@@ -108,7 +108,7 @@ export const userService = {
         if (
           errorMessage.includes("email já existe") ||
           errorMessage.includes(
-            "já existe um registro com este valor para o campo email"
+            "já existe um registro com este valor para o campo email",
           )
         ) {
           throw new Error("email já está cadastrado");
