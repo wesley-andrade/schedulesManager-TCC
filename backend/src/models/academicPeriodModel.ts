@@ -17,10 +17,16 @@ const findByName = async (name: string) => {
 const createAcademicPeriod = async (
   name: string,
   startDate: string,
-  endDate: string
+  endDate: string,
 ) => {
-  const [startYear, startMonth, startDay] = startDate.split("-").map(Number);
-  const [endYear, endMonth, endDay] = endDate.split("-").map(Number);
+  const [startYear, startMonth, startDay] = startDate
+    .slice(0, 10)
+    .split("-")
+    .map(Number);
+  const [endYear, endMonth, endDay] = endDate
+    .slice(0, 10)
+    .split("-")
+    .map(Number);
 
   const adjustedStartDate = new Date(startYear, startMonth - 1, startDay);
   const adjustedEndDate = new Date(endYear, endMonth - 1, endDay);
@@ -36,17 +42,23 @@ const createAcademicPeriod = async (
 
 const updateAcademicPeriod = async (
   id: number,
-  updates: { name?: string; startDate?: string; endDate?: string }
+  updates: { name?: string; startDate?: string; endDate?: string },
 ) => {
   const data: any = { name: updates.name };
 
   if (updates.startDate) {
-    const [year, month, day] = updates.startDate.split("-").map(Number);
+    const [year, month, day] = updates.startDate
+      .slice(0, 10)
+      .split("-")
+      .map(Number);
     data.startDate = new Date(year, month - 1, day);
   }
 
   if (updates.endDate) {
-    const [year, month, day] = updates.endDate.split("-").map(Number);
+    const [year, month, day] = updates.endDate
+      .slice(0, 10)
+      .split("-")
+      .map(Number);
     data.endDate = new Date(year, month - 1, day);
   }
 
@@ -70,7 +82,7 @@ const deleteAcademicPeriod = async (id: number) => {
 
   if (period.modules.length > 0) {
     throw new Error(
-      "Não é possível excluir este período acadêmico pois ele possui módulos vinculados"
+      "Não é possível excluir este período acadêmico pois ele possui módulos vinculados",
     );
   }
 
