@@ -2,15 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { ZodError, ZodIssueCode } from "zod";
 import { ValidationErrorDetail } from "../types";
 import { Prisma } from "@prisma/client";
+import { AppError } from "../errors/AppError";
 
-export class AppError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number = 400,
-  ) {
-    super(message);
-    this.name = "AppError";
-  }
+export function notFoundHandler(req: Request, res: Response) {
+  res.status(404).json({ message: "Rota não encontrada" });
 }
 
 export function errorHandler(
@@ -57,10 +52,17 @@ export function errorHandler(
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === "P2003") {
-      res.status(409).json({
-        message:
-          "Não é possível excluir este registro pois ele possui registros vinculados no sistema",
-      });
+      if (req.method === "DELETE") {
+        res.status(409).json({
+          message:
+            "Não é possível excluir este registro, pois ele possui registros vinculados no sistema",
+        });
+      } else {
+        res.status(400).json({
+          message:
+            "Operação inválida: um dos registros relacionados não existe",
+        });
+      }
       return;
     }
 
@@ -79,12 +81,18 @@ export function errorHandler(
     }
   }
 
-  if (err instanceof Error) {
-    res.status(400).json({ message: err.message });
+  const httpError = err as { type?: string };
+
+  if (httpError?.type === "entity.parse.failed") {
+    res.status(400).json({ message: "JSON inválido no corpo da requisição" });
     return;
   }
 
-  res.status(500).json({
-    message: "Erro interno do servidor",
-  });
+  if (httpError?.type === "entity.too.large") {
+    res.status(413).json({ message: "Corpo da requisição grande demais" });
+    return;
+  }
+
+  console.error("[errorHandler]", err);
+  res.status(500).json({ message: "Erro interno do servidor" });
 }

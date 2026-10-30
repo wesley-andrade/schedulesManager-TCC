@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import router from "./routes";
+import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 
 dotenv.config();
 
@@ -23,6 +24,8 @@ app.use(
 
 app.use(express.json());
 app.use("/api", router);
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

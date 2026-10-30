@@ -14,7 +14,6 @@ import disciplineRoutes from "./disciplineRoutes";
 import disciplineModuleRoutes from "./disciplineModuleRoutes";
 import disciplineCourseRoutes from "./disciplineCourseRoutes";
 import roomRoutes from "./roomRoutes";
-import { errorHandler } from "../middlewares/errorHandler";
 
 const router = express.Router();
 
@@ -33,7 +32,5 @@ router.use("/disciplines", disciplineRoutes);
 router.use("/discipline-modules", disciplineModuleRoutes);
 router.use("/discipline-courses", disciplineCourseRoutes);
 router.use("/rooms", roomRoutes);
-
-router.use(errorHandler);
 
 export default router;
