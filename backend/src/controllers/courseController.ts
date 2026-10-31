@@ -51,7 +51,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     const exist = await courseModel.findByName(name);
     if (exist) {
-      res.status(400).json({ message: "Já existe um curso com esse nome" });
+      res.status(409).json({ message: "Já existe um curso com esse nome" });
       return;
     }
 

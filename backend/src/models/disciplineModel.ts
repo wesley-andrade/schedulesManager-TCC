@@ -1,3 +1,4 @@
+import { ConflictError, NotFoundError } from "../errors/AppError";
 import prisma from "./prisma";
 import { RoomType } from "@prisma/client";
 
@@ -26,7 +27,7 @@ const findByName = async (name: string) => {
 const createDiscipline = async (
   name: string,
   totalHours: number,
-  requiredRoomType: RoomType
+  requiredRoomType: RoomType,
 ) => {
   return await prisma.discipline.create({
     data: { name, totalHours, requiredRoomType },
@@ -39,7 +40,7 @@ const updateDiscipline = async (
     name: string;
     totalHours: number;
     requiredRoomType: RoomType;
-  }>
+  }>,
 ) => {
   return await prisma.discipline.update({
     where: { id },
@@ -58,7 +59,7 @@ const deleteDiscipline = async (id: number) => {
   });
 
   if (!discipline) {
-    throw new Error("Disciplina não encontrada");
+    throw new NotFoundError("Disciplina não encontrada");
   }
 
   if (
@@ -66,8 +67,8 @@ const deleteDiscipline = async (id: number) => {
     discipline.disciplineModules.length > 0 ||
     discipline.disciplineCourses.length > 0
   ) {
-    throw new Error(
-      "Não é possível excluir esta disciplina pois ela possui registros vinculados no sistema"
+    throw new ConflictError(
+      "Não é possível excluir esta disciplina pois ela possui registros vinculados no sistema",
     );
   }
 

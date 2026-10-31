@@ -15,49 +15,23 @@ export interface DisciplineModule {
 
 export const disciplineModuleService = {
   async getAllDisciplineModules(): Promise<DisciplineModule[]> {
-    try {
-      const response = await api.get("/discipline-modules");
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
-      }
-
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao buscar disciplinas da turma (${
-            error.response?.status || "sem status"
-          }): ${error.message}`
-      );
-    }
+    const { data } = await api.get<DisciplineModule[]>("/discipline-modules");
+    return data;
   },
 
   async createDisciplineModule(
     disciplineId: number,
     moduleId: number,
-    academicPeriodId: number
+    academicPeriodId: number,
   ): Promise<DisciplineModule> {
-    try {
-      const response = await api.post("/discipline-modules", {
-        disciplineId,
-        moduleId,
-        academicPeriodId,
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Erro ao associar disciplina à turma"
-      );
-    }
+    const { data } = await api.post<DisciplineModule>(
+      "/discipline-modules",
+      { disciplineId, moduleId, academicPeriodId },
+    );
+    return data;
   },
 
   async deleteDisciplineModule(id: number): Promise<void> {
-    try {
-      await api.delete(`/discipline-modules/${id}`);
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Erro ao remover disciplina da turma"
-      );
-    }
+    await api.delete(`/discipline-modules/${id}`);
   },
-}; 
+};

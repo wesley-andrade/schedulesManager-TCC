@@ -1,5 +1,6 @@
 import { Role } from "@prisma/client";
 import prisma from "./prisma";
+import { NotFoundError } from "../errors/AppError";
 
 const getAllUsers = async () => {
   const users = await prisma.user.findMany({
@@ -32,7 +33,7 @@ const createUser = async (
   email: string,
   password: string,
   role: Role,
-  phone?: string
+  phone?: string,
 ) => {
   const newUser = await prisma.user.create({
     data: {
@@ -65,7 +66,7 @@ const updateUser = async (
     password: string;
     role: Role;
     phone?: string;
-  }>
+  }>,
 ) => {
   const { phone, ...userUpdates } = updates;
 
@@ -92,17 +93,15 @@ const deleteUser = async (id: number) => {
   });
 
   if (!user) {
-    throw new Error("Usuário não encontrado");
+    throw new NotFoundError("Usuário não encontrado");
   }
 
-  if (user.teacher) {
-    await prisma.teacher.delete({
-      where: { userId: id },
-    });
-  }
+  await prisma.$transaction(async (tx) => {
+    if (user.teacher) {
+      await tx.teacher.delete({ where: { userId: id } });
+    }
 
-  await prisma.user.delete({
-    where: { id },
+    await tx.user.delete({ where: { id } });
   });
 
   return true;

@@ -8,65 +8,21 @@ export interface Module {
 
 export const moduleService = {
   async getAllModules(): Promise<Module[]> {
-    try {
-      const response = await api.get("/modules");
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
-      }
+    const { data } = await api.get<Module[]>("/modules");
+    return data;
+  },
 
-      if (error.response?.status === 403) {
-        throw new Error(
-          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar turmas."
-        );
-      }
+  async createModule(moduleData: Omit<Module, "id">): Promise<Module> {
+    const { data } = await api.post<Module>("/modules", moduleData);
+    return data;
+  },
 
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao buscar turmas (${
-            error.response?.status || "sem status"
-          }): ${error.message}`
-      );
-    }
+  async updateModule(id: number, moduleData: Partial<Module>): Promise<Module> {
+    const { data } = await api.put<Module>(`/modules/${id}`, moduleData);
+    return data;
   },
 
   async deleteModule(id: number): Promise<void> {
-    try {
-      await api.delete(`/modules/${id}`);
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Erro ao excluir turma"
-      );
-    }
+    await api.delete(`/modules/${id}`);
   },
-
-  async updateModule(
-    id: number,
-    moduleData: Partial<Module>
-  ): Promise<Module> {
-    try {
-      const response = await api.put(`/modules/${id}`, moduleData);
-      return response.data;
-    } catch (error) {
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw new Error("Erro ao atualizar turma");
-    }
-  },
-
-  async createModule(
-    moduleData: Omit<Module, "id">
-  ): Promise<Module> {
-    try {
-      const response = await api.post("/modules", moduleData);
-      return response.data;
-    } catch (error) {
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw new Error("Erro ao criar turma");
-    }
-  },
-}; 
+};

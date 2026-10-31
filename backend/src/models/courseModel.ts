@@ -1,3 +1,4 @@
+import { ConflictError, NotFoundError } from "../errors/AppError";
 import prisma from "./prisma";
 
 const getAllCourses = async () => {
@@ -38,12 +39,12 @@ const deleteCourse = async (id: number) => {
   });
 
   if (!course) {
-    throw new Error("Curso não encontrado");
+    throw new NotFoundError("Curso não encontrado");
   }
 
   if (course.disciplines.length > 0) {
-    throw new Error(
-      "Não é possível excluir este curso pois ele possui disciplinas vinculadas"
+    throw new ConflictError(
+      "Não é possível excluir este curso pois ele possui disciplinas vinculadas",
     );
   }
 

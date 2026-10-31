@@ -9,65 +9,32 @@ export interface AcademicPeriod {
 
 export const academicPeriodService = {
   async getAllAcademicPeriods(): Promise<AcademicPeriod[]> {
-    try {
-      const response = await api.get("/academic-periods");
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
-      }
-
-      if (error.response?.status === 403) {
-        throw new Error(
-          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar períodos acadêmicos."
-        );
-      }
-
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao buscar períodos acadêmicos (${
-            error.response?.status || "sem status"
-          }): ${error.message}`
-      );
-    }
+    const { data } = await api.get<AcademicPeriod[]>("/academic-periods");
+    return data;
   },
 
-  async deletePeriod(id: number): Promise<void> {
-    try {
-      await api.delete(`/academic-periods/${id}`);
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Erro ao excluir período acadêmico"
-      );
-    }
+  async createPeriod(
+    periodData: Omit<AcademicPeriod, "id">,
+  ): Promise<AcademicPeriod> {
+    const { data } = await api.post<AcademicPeriod>(
+      "/academic-periods",
+      periodData,
+    );
+    return data;
   },
 
   async updatePeriod(
     id: number,
-    periodData: Partial<AcademicPeriod>
+    periodData: Partial<AcademicPeriod>,
   ): Promise<AcademicPeriod> {
-    try {
-      const response = await api.put(`/academic-periods/${id}`, periodData);
-      return response.data;
-    } catch (error) {
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw new Error("Erro ao atualizar período acadêmico");
-    }
+    const { data } = await api.put<AcademicPeriod>(
+      `/academic-periods/${id}`,
+      periodData,
+    );
+    return data;
   },
 
-  async createPeriod(
-    periodData: Omit<AcademicPeriod, "id">
-  ): Promise<AcademicPeriod> {
-    try {
-      const response = await api.post("/academic-periods", periodData);
-      return response.data;
-    } catch (error) {
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw new Error("Erro ao criar período acadêmico");
-    }
+  async deletePeriod(id: number): Promise<void> {
+    await api.delete(`/academic-periods/${id}`);
   },
 };

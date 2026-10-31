@@ -18,7 +18,7 @@ export const timeSlotSchema = z
     {
       message: "O horário final deve ser posterior ao horário inicial",
       path: ["endTime"],
-    }
+    },
   );
 
 const index = async (req: Request, res: Response, next: NextFunction) => {
@@ -44,7 +44,7 @@ const show = async (req: Request, res: Response, next: NextFunction) => {
     const timeSlot = await timeSlotModel.getTimeSlotById(id);
 
     if (!timeSlot) {
-      res.status(404).json({ error: "Horário não encontrado" });
+      res.status(404).json({ message: "Horário não encontrado" });
       return;
     }
 
@@ -84,7 +84,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
 
     const exist = await timeSlotModel.getTimeSlotById(id);
     if (!exist) {
-      res.status(404).json({ error: "Horário não encontrado" });
+      res.status(404).json({ message: "Horário não encontrado" });
       return;
     }
 

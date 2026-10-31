@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { User, userService } from "@/services/userService";
+import {
+  EMAIL_ALREADY_REGISTERED,
+  User,
+  userService,
+} from "@/services/userService";
 import Header from "@/components/Header";
 import { useUser } from "@/contexts/UserContext";
 import { UserTable } from "@/components/users/UserTable";
@@ -227,7 +231,7 @@ const UserManagement = () => {
       }
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === "email já está cadastrado") {
+        if (error.message === EMAIL_ALREADY_REGISTERED) {
           setFormErrors((prev) => ({
             ...prev,
             email: "Este email já está cadastrado no sistema",
@@ -264,7 +268,7 @@ const UserManagement = () => {
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+      user.role.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

@@ -10,13 +10,18 @@ import {
 } from "date-fns";
 import { TimeSlot } from "../types";
 import { Response } from "express";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../errors/AppError";
 
 async function generateSchedules(academicPeriodId: number) {
   const academicPeriod = await prisma.academicPeriod.findUnique({
     where: { id: academicPeriodId },
   });
   if (!academicPeriod) {
-    throw new Error("Período letivo não encontrado");
+    throw new NotFoundError("Período letivo não encontrado");
   }
 
   const startDate = parseISO(academicPeriod.startDate.toISOString());
@@ -258,7 +263,7 @@ async function updateClassSchedule(
   });
 
   if (!classSchedule) {
-    throw new Error("Aula não encontrada");
+    throw new NotFoundError("Aula não encontrada");
   }
 
   const disciplineModule = await prisma.disciplineModule.findFirst({
@@ -271,7 +276,9 @@ async function updateClassSchedule(
   });
 
   if (!disciplineModule?.academicPeriod) {
-    throw new Error("Período acadêmico não encontrado para esta disciplina");
+    throw new BadRequestError(
+      "Período acadêmico não encontrado para esta disciplina",
+    );
   }
 
   const periodStart = parseISO(
@@ -282,7 +289,7 @@ async function updateClassSchedule(
   );
 
   if (dateObj < periodStart) {
-    throw new Error(
+    throw new BadRequestError(
       `A data não pode ser anterior ao início do período (${format(
         periodStart,
         "dd/MM/yyyy",
@@ -291,7 +298,7 @@ async function updateClassSchedule(
   }
 
   if (dateObj > periodEnd) {
-    throw new Error(
+    throw new BadRequestError(
       `A data não pode ser posterior ao fim do período (${format(
         periodEnd,
         "dd/MM/yyyy",
@@ -308,7 +315,7 @@ async function updateClassSchedule(
   });
 
   if (!schedule || !schedule.timeSlot) {
-    throw new Error("Horário não encontrado");
+    throw new NotFoundError("Horário não encontrado");
   }
 
   const dayOfWeek = capitalize(
@@ -316,7 +323,7 @@ async function updateClassSchedule(
   );
 
   if (dayOfWeek !== schedule.dayOfWeek) {
-    throw new Error(
+    throw new BadRequestError(
       `Este horário só pode ser alocado em ${schedule.dayOfWeek}`,
     );
   }
@@ -333,7 +340,7 @@ async function updateClassSchedule(
   const holidays = await holidayService.getHolidays(startOfDay, endOfDay);
 
   if (holidays.length > 0) {
-    throw new Error("Data em feriado");
+    throw new BadRequestError("Data em feriado");
   }
 
   const module = disciplineModule
@@ -352,7 +359,9 @@ async function updateClassSchedule(
   });
 
   if (conflict) {
-    throw new Error("Conflito de horário com outro agendamento do professor");
+    throw new ConflictError(
+      "Conflito de horário com outro agendamento do professor",
+    );
   }
 
   const availableRoom = await prisma.room.findFirst({
@@ -371,7 +380,7 @@ async function updateClassSchedule(
   });
 
   if (!availableRoom) {
-    throw new Error("Nenhuma sala disponível compatível");
+    throw new ConflictError("Nenhuma sala disponível compatível");
   }
 
   const updatedSchedule = await prisma.classSchedule.update({
@@ -420,7 +429,7 @@ async function generateSchedulesPDF(academicPeriodId: number, res: Response) {
   const academicPeriod = await prisma.academicPeriod.findUnique({
     where: { id: academicPeriodId },
   });
-  if (!academicPeriod) throw new Error("Período letivo não encontrado");
+  if (!academicPeriod) throw new NotFoundError("Período letivo não encontrado");
   const result = await generateSchedules(academicPeriodId);
   const reasonFailure: Record<string, number> = {};
   result.failues.forEach((f) => {

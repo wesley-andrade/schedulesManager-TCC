@@ -55,7 +55,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const exist = await academicPeriodModel.findByName(name);
     if (exist) {
       res
-        .status(400)
+        .status(409)
         .json({ message: "Já existe um período acadêmico com esse nome" });
       return;
     }
@@ -72,7 +72,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const newPeriod = await academicPeriodModel.createAcademicPeriod(
       name,
       startDate,
-      endDate
+      endDate,
     );
 
     res.status(201).json(newPeriod);
@@ -117,7 +117,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
 
     const updated = await academicPeriodModel.updateAcademicPeriod(
       id,
-      parsedData
+      parsedData,
     );
 
     res.status(200).json(updated);

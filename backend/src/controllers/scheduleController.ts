@@ -37,7 +37,7 @@ const show = async (req: Request, res: Response, next: NextFunction) => {
     const schedule = await schedulesModel.getScheduleById(id);
 
     if (!schedule) {
-      res.status(404).json({ error: "Horário não encontrado" });
+      res.status(404).json({ message: "Horário não encontrado" });
       return;
     }
 
@@ -56,13 +56,13 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     const timeSlotExists = await timeSlotModel.getTimeSlotById(timeSlotId);
     if (!timeSlotExists) {
-      res.status(404).json({ error: "Time slot não encontrado" });
+      res.status(404).json({ message: "Time slot não encontrado" });
       return;
     }
 
     const newSchedule = await schedulesModel.createSchedule(
       dayOfWeek,
-      timeSlotExists.id
+      timeSlotExists.id,
     );
     res.status(201).json(newSchedule);
     return;
@@ -85,12 +85,12 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
 
     const exist = await schedulesModel.getScheduleById(id);
     if (!exist) {
-      res.status(404).json({ error: "Horário não encontrado" });
+      res.status(404).json({ message: "Horário não encontrado" });
       return;
     }
 
-    if (timeSlotId && !timeSlotModel.getTimeSlotById(timeSlotId)) {
-      res.status(404).json({ error: "Time slot não encontrado" });
+    if (timeSlotId && !(await timeSlotModel.getTimeSlotById(timeSlotId))) {
+      res.status(404).json({ message: "Time slot não encontrado" });
       return;
     }
 

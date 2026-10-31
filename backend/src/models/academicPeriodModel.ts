@@ -1,3 +1,4 @@
+import { ConflictError, NotFoundError } from "../errors/AppError";
 import prisma from "./prisma";
 
 const getAllAcademicPeriods = async () => {
@@ -77,11 +78,11 @@ const deleteAcademicPeriod = async (id: number) => {
   });
 
   if (!period) {
-    throw new Error("Período acadêmico não encontrado");
+    throw new NotFoundError("Período acadêmico não encontrado");
   }
 
   if (period.modules.length > 0) {
-    throw new Error(
+    throw new ConflictError(
       "Não é possível excluir este período acadêmico pois ele possui módulos vinculados",
     );
   }

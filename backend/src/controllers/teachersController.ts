@@ -34,7 +34,7 @@ const show = async (req: Request, res: Response, next: NextFunction) => {
     const teacher = await teachersModel.getTeacherById(id);
 
     if (!teacher) {
-      res.status(404).json({ error: "Professor não encontrado" });
+      res.status(404).json({ message: "Professor não encontrado" });
       return;
     }
 
@@ -80,7 +80,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
 
     const exist = await teachersModel.getTeacherById(id);
     if (!exist) {
-      res.status(404).json({ error: "Professor não encontrado" });
+      res.status(404).json({ message: "Professor não encontrado" });
       return;
     }
 

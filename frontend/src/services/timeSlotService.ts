@@ -8,64 +8,27 @@ export interface TimeSlot {
 
 export const timeSlotService = {
   async getAllTimeSlots(): Promise<TimeSlot[]> {
-    try {
-      const response = await api.get("/time-slots");
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
-      }
-
-      if (error.response?.status === 403) {
-        throw new Error(
-          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar horários."
-        );
-      }
-
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao buscar horários (${
-            error.response?.status || "sem status"
-          }): ${error.message}`
-      );
-    }
+    const { data } = await api.get<TimeSlot[]>("/time-slots");
+    return data;
   },
 
-  async createTimeSlot(data: Omit<TimeSlot, "id">): Promise<TimeSlot> {
-    try {
-      const response = await api.post("/time-slots", data);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao criar horário: ${error.message}`
-      );
-    }
+  async createTimeSlot(timeSlotData: Omit<TimeSlot, "id">): Promise<TimeSlot> {
+    const { data } = await api.post<TimeSlot>("/time-slots", timeSlotData);
+    return data;
   },
 
   async updateTimeSlot(
     id: number,
-    data: Partial<Omit<TimeSlot, "id">>
+    timeSlotData: Partial<Omit<TimeSlot, "id">>,
   ): Promise<TimeSlot> {
-    try {
-      const response = await api.put(`/time-slots/${id}`, data);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao atualizar horário: ${error.message}`
-      );
-    }
+    const { data } = await api.put<TimeSlot>(
+      `/time-slots/${id}`,
+      timeSlotData,
+    );
+    return data;
   },
 
   async deleteTimeSlot(id: number): Promise<void> {
-    try {
-      await api.delete(`/time-slots/${id}`);
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao excluir horário: ${error.message}`
-      );
-    }
+    await api.delete(`/time-slots/${id}`);
   },
 };

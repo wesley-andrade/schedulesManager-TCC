@@ -116,27 +116,13 @@ const remove = async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    try {
-      await userModel.deleteUser(id);
-      res.status(204).end();
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message === "Usuário não encontrado") {
-          res.status(404).json({ message: error.message });
-          return;
-        }
-        if (error.message.includes("Restrição de chave estrangeira")) {
-          res.status(400).json({
-            message:
-              "Não é possível excluir este usuário pois ele possui registros vinculados no sistema",
-          });
-          return;
-        }
-      }
-      throw error;
-    }
+    await userModel.deleteUser(id);
+
+    res.status(204).end();
+    return;
   } catch (err) {
     next(err);
+    return;
   }
 };
 

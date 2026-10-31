@@ -1,3 +1,4 @@
+import { ConflictError, NotFoundError } from "../errors/AppError";
 import prisma from "./prisma";
 import { RoomType } from "@prisma/client";
 
@@ -12,14 +13,14 @@ const getRoomById = async (id: number) => {
 const createRoom = async (
   name: string,
   seatsAmount: number,
-  type: RoomType
+  type: RoomType,
 ) => {
   return await prisma.room.create({ data: { name, seatsAmount, type } });
 };
 
 const updateRoom = async (
   id: number,
-  updates: Partial<{ name: string; seatsAmount: number; type: RoomType }>
+  updates: Partial<{ name: string; seatsAmount: number; type: RoomType }>,
 ) => {
   return await prisma.room.update({ where: { id }, data: updates });
 };
@@ -33,12 +34,12 @@ const deleteRoom = async (id: number) => {
   });
 
   if (!room) {
-    throw new Error("Sala não encontrada");
+    throw new NotFoundError("Sala não encontrada");
   }
 
   if (room.usages.length > 0) {
-    throw new Error(
-      "Não é possível excluir esta sala pois ela possui agendamentos vinculados"
+    throw new ConflictError(
+      "Não é possível excluir esta sala pois ela possui agendamentos vinculados",
     );
   }
 

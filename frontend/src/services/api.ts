@@ -26,6 +26,13 @@ api.interceptors.response.use(
       window.location.assign(ROUTES.HOME);
     }
 
+    const backendMessage = error.response?.data?.message;
+    if (typeof backendMessage === "string") {
+      error.message = backendMessage;
+    } else if (!error.response) {
+      error.message = "Não foi possível conectar ao servidor";
+    }
+
     return Promise.reject(error);
   },
 );

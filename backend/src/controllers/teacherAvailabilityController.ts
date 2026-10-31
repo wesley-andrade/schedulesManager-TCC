@@ -35,7 +35,7 @@ const show = async (req: Request, res: Response, next: NextFunction) => {
       await teacherAvailabilityModel.getTeacherAvailabilityById(id);
 
     if (!availability) {
-      res.status(404).json({ error: "Disponibilidade não encontrada" });
+      res.status(404).json({ message: "Disponibilidade não encontrada" });
       return;
     }
 
@@ -68,7 +68,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       await teacherAvailabilityModel.createTeacherAvailability(
         teacherId,
         scheduleId,
-        status
+        status,
       );
 
     res.status(201).json(newAvailability);
@@ -112,7 +112,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
         teacherId,
         scheduleId,
         status,
-      }
+      },
     );
 
     res.status(200).json(updated);

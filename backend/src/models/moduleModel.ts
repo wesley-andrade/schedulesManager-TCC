@@ -1,3 +1,4 @@
+import { ConflictError, NotFoundError } from "../errors/AppError";
 import prisma from "./prisma";
 
 const getAllModules = async () => {
@@ -18,7 +19,7 @@ const createModule = async (name: string, totalStudents: number) => {
 
 const updateModule = async (
   id: number,
-  updates: { name?: string; totalStudents?: number }
+  updates: { name?: string; totalStudents?: number },
 ) => {
   return await prisma.module.update({
     where: { id },
@@ -35,12 +36,12 @@ const deleteModule = async (id: number) => {
   });
 
   if (!module) {
-    throw new Error("Módulo não encontrado");
+    throw new NotFoundError("Módulo não encontrado");
   }
 
   if (module.disciplineModules.length > 0) {
-    throw new Error(
-      "Não é possível excluir este módulo pois ele possui disciplinas vinculadas"
+    throw new ConflictError(
+      "Não é possível excluir este módulo pois ele possui disciplinas vinculadas",
     );
   }
 

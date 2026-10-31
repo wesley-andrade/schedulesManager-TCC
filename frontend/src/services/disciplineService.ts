@@ -24,64 +24,30 @@ export interface DisciplinePayload {
 
 export const disciplineService = {
   async getAllDisciplines(): Promise<Discipline[]> {
-    try {
-      const response = await api.get("/disciplines");
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
-      }
-
-      if (error.response?.status === 403) {
-        throw new Error(
-          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar disciplinas."
-        );
-      }
-
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao buscar disciplinas (${
-            error.response?.status || "sem status"
-          }): ${error.message}`
-      );
-    }
+    const { data } = await api.get<Discipline[]>("/disciplines");
+    return data;
   },
 
-  async createDiscipline(data: DisciplinePayload): Promise<Discipline> {
-    try {
-      const response = await api.post("/disciplines", data);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao criar disciplina: ${error.message}`
-      );
-    }
+  async createDiscipline(disciplineData: DisciplinePayload): Promise<Discipline> {
+    const { data } = await api.post<Discipline>(
+      "/disciplines",
+      disciplineData,
+    );
+    return data;
   },
 
   async updateDiscipline(
     id: number,
-    data: DisciplinePayload
+    disciplineData: DisciplinePayload,
   ): Promise<Discipline> {
-    try {
-      const response = await api.put(`/disciplines/${id}`, data);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao atualizar disciplina: ${error.message}`
-      );
-    }
+    const { data } = await api.put<Discipline>(
+      `/disciplines/${id}`,
+      disciplineData,
+    );
+    return data;
   },
 
   async deleteDiscipline(id: number): Promise<void> {
-    try {
-      await api.delete(`/disciplines/${id}`);
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao excluir disciplina: ${error.message}`
-      );
-    }
+    await api.delete(`/disciplines/${id}`);
   },
 };

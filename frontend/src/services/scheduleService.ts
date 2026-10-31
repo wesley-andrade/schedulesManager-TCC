@@ -18,66 +18,29 @@ export interface Schedule {
 
 export const scheduleService = {
   async getAllSchedules(): Promise<Schedule[]> {
-    try {
-      const response = await api.get("/schedules");
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
-      }
-
-      if (error.response?.status === 403) {
-        throw new Error(
-          "Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar horários."
-        );
-      }
-
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao buscar horários (${
-            error.response?.status || "sem status"
-          }): ${error.message}`
-      );
-    }
+    const { data } = await api.get<Schedule[]>("/schedules");
+    return data;
   },
 
   async createSchedule(
-    data: Omit<Schedule, "id" | "timeSlot">
+    scheduleData: Omit<Schedule, "id" | "timeSlot">,
   ): Promise<Schedule> {
-    try {
-      const response = await api.post("/schedules", data);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao criar horário: ${error.message}`
-      );
-    }
+    const { data } = await api.post<Schedule>("/schedules", scheduleData);
+    return data;
   },
 
   async updateSchedule(
     id: number,
-    data: Partial<Omit<Schedule, "id" | "timeSlot">>
+    scheduleData: Partial<Omit<Schedule, "id" | "timeSlot">>,
   ): Promise<Schedule> {
-    try {
-      const response = await api.put(`/schedules/${id}`, data);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao atualizar horário: ${error.message}`
-      );
-    }
+    const { data } = await api.put<Schedule>(
+      `/schedules/${id}`,
+      scheduleData,
+    );
+    return data;
   },
 
   async deleteSchedule(id: number): Promise<void> {
-    try {
-      await api.delete(`/schedules/${id}`);
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message ||
-          `Erro ao excluir horário: ${error.message}`
-      );
-    }
+    await api.delete(`/schedules/${id}`);
   },
 };

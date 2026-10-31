@@ -1,3 +1,4 @@
+import { ConflictError, NotFoundError } from "../errors/AppError";
 import prisma from "./prisma";
 
 const getAllSchedules = async () => {
@@ -12,7 +13,7 @@ const getScheduleById = async (id: number) => {
 
 const findScheduleByDayAndTimeSlot = async (
   dayOfWeek: string,
-  timeSlotId: number
+  timeSlotId: number,
 ) => {
   return await prisma.schedule.findFirst({
     where: {
@@ -25,11 +26,13 @@ const findScheduleByDayAndTimeSlot = async (
 const createSchedule = async (dayOfWeek: string, timeSlotId: number) => {
   const existingSchedule = await findScheduleByDayAndTimeSlot(
     dayOfWeek,
-    timeSlotId
+    timeSlotId,
   );
 
   if (existingSchedule) {
-    throw new Error("Já existe um horário cadastrado para este dia e período");
+    throw new ConflictError(
+      "Já existe um horário cadastrado para este dia e período",
+    );
   }
 
   return await prisma.schedule.create({ data: { dayOfWeek, timeSlotId } });
@@ -37,7 +40,7 @@ const createSchedule = async (dayOfWeek: string, timeSlotId: number) => {
 
 const updateSchedule = async (
   id: number,
-  updates: Partial<{ dayOfWeek: string; timeSlotId: number }>
+  updates: Partial<{ dayOfWeek: string; timeSlotId: number }>,
 ) => {
   return await prisma.schedule.update({ where: { id }, data: updates });
 };
@@ -53,7 +56,7 @@ const deleteSchedule = async (id: number) => {
   });
 
   if (!schedule) {
-    throw new Error("Horário não encontrado");
+    throw new NotFoundError("Horário não encontrado");
   }
 
   if (
@@ -61,8 +64,8 @@ const deleteSchedule = async (id: number) => {
     schedule.classScheduleRooms.length > 0 ||
     schedule.ClassSchedule.length > 0
   ) {
-    throw new Error(
-      "Não é possível excluir este horário pois ele possui registros vinculados no sistema"
+    throw new ConflictError(
+      "Não é possível excluir este horário pois ele possui registros vinculados no sistema",
     );
   }
 
