@@ -157,17 +157,7 @@ async function generateSchedules(academicPeriodId: number) {
           const moduleConflict = await prisma.classSchedule.findFirst({
             where: {
               date: fullDateTime,
-              scheduleId: schedule.id,
-              disciplineTeacher: {
-                discipline: {
-                  disciplineModules: {
-                    some: {
-                      moduleId: mod.id,
-                      academicPeriodId: academicPeriodId,
-                    },
-                  },
-                },
-              },
+              moduleId: mod.id,
             },
           });
           if (moduleConflict) continue;
@@ -269,6 +259,7 @@ async function updateClassSchedule(
   const disciplineModule = await prisma.disciplineModule.findFirst({
     where: {
       disciplineId: classSchedule.disciplineTeacher.disciplineId,
+      moduleId: classSchedule.moduleId,
     },
     include: {
       academicPeriod: true,
@@ -361,6 +352,21 @@ async function updateClassSchedule(
   if (conflict) {
     throw new ConflictError(
       "Conflito de horário com outro agendamento do professor",
+    );
+  }
+
+  const moduleConflict = await prisma.classSchedule.findFirst({
+    where: {
+      id: { not: id },
+      scheduleId,
+      date: fullDateTime,
+      moduleId: classSchedule.moduleId,
+    },
+  });
+
+  if (moduleConflict) {
+    throw new ConflictError(
+      "Conflito de horário com outra aula da mesma turma",
     );
   }
 

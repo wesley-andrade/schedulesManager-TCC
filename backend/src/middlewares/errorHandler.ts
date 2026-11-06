@@ -8,6 +8,22 @@ export function notFoundHandler(req: Request, res: Response) {
   res.status(404).json({ message: "Rota não encontrada" });
 }
 
+const DUPLICATE_MESSAGES: Record<string, string> = {
+  User: "Email já cadastrado",
+  TimeSlot: "Já existe um intervalo de horário com esses valores",
+  Schedule: "Já existe um horário cadastrado para este dia e período",
+  TeacherAvailability:
+    "Este horário já está marcado como disponível para este professor",
+  DisciplineTeacher: "Esta disciplina já está vinculada a este professor",
+  DisciplineModule: "Esta disciplina já está associada a esta turma",
+  DisciplineCourse: "Esta disciplina já está associada a este curso",
+  ClassSchedule: "Esta turma já tem uma aula neste horário",
+  ClassScheduleRoom: "A sala já está ocupada neste horário",
+  AcademicPeriod: "Já existe um período acadêmico com esse nome",
+  Course: "Já existe um curso com esse nome",
+  Discipline: "Já existe uma disciplina com esse nome",
+};
+
 export function errorHandler(
   err: unknown,
   req: Request,
@@ -74,8 +90,10 @@ export function errorHandler(
     }
 
     if (err.code === "P2002") {
+      const model = String(err.meta?.modelName ?? "");
       res.status(409).json({
-        message: "Já existe um registro com este valor",
+        message:
+          DUPLICATE_MESSAGES[model] ?? "Já existe um registro com este valor",
       });
       return;
     }

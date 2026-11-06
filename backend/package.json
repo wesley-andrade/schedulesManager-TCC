@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch ./src/server.ts",
     "build": "tsc",
-    "start": "node ./build/server.js"
+    "start": "node ./build/server.js",
+    "db:seed": "tsx prisma/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -27,11 +28,10 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.0",
+    "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.30",
     "@types/pdfkit": "^0.14.0",
-    "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   }

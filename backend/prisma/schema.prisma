@@ -43,6 +43,8 @@ model TeacherAvailability {
   status     Boolean
   teacher    Teacher  @relation(fields: [teacherId], references: [id])
   schedule   Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@unique([teacherId, scheduleId])
 }
 
 model Schedule {
@@ -53,6 +55,8 @@ model Schedule {
   availabilities     TeacherAvailability[]
   classScheduleRooms ClassScheduleRoom[]
   ClassSchedule      ClassSchedule[]
+
+  @@unique([dayOfWeek, timeSlotId])
 }
 
 model TimeSlot {
@@ -60,6 +64,8 @@ model TimeSlot {
   startTime String
   endTime   String
   schedules Schedule[]
+
+  @@unique([startTime, endTime])
 }
 
 model ClassSchedule {
@@ -72,6 +78,9 @@ model ClassSchedule {
   disciplineTeacher   DisciplineTeacher   @relation(fields: [disciplineTeacherId], references: [id])
   module              Module              @relation(fields: [moduleId], references: [id])
   rooms               ClassScheduleRoom[]
+
+  @@unique([moduleId, date, scheduleId])
+  @@index([date, scheduleId])
 }
 
 model DisciplineTeacher {
@@ -81,11 +90,13 @@ model DisciplineTeacher {
   discipline     Discipline      @relation(fields: [disciplineId], references: [id])
   teacher        Teacher         @relation(fields: [teacherId], references: [id])
   classSchedules ClassSchedule[]
+
+  @@unique([disciplineId, teacherId])
 }
 
 model Discipline {
   id                 Int                 @id @default(autoincrement())
-  name               String
+  name               String              @unique
   totalHours         Int
   requiredRoomType   RoomType
   disciplineModules  DisciplineModule[]
@@ -101,11 +112,13 @@ model DisciplineModule {
   discipline       Discipline     @relation(fields: [disciplineId], references: [id])
   module           Module         @relation(fields: [moduleId], references: [id])
   academicPeriod   AcademicPeriod @relation(fields: [academicPeriodId], references: [id])
+
+  @@unique([disciplineId, moduleId])
 }
 
 model AcademicPeriod {
   id        Int                @id @default(autoincrement())
-  name      String
+  name      String             @unique
   startDate DateTime
   endDate   DateTime
   modules   DisciplineModule[]
@@ -125,11 +138,13 @@ model DisciplineCourse {
   courseId     Int
   discipline   Discipline @relation(fields: [disciplineId], references: [id])
   course       Course     @relation(fields: [courseId], references: [id])
+
+  @@unique([disciplineId, courseId])
 }
 
 model Course {
   id          Int                @id @default(autoincrement())
-  name        String
+  name        String             @unique
   disciplines DisciplineCourse[]
 }
 
@@ -150,4 +165,7 @@ model ClassScheduleRoom {
   classSchedule   ClassSchedule @relation(fields: [classScheduleId], references: [id])
   room            Room          @relation(fields: [roomId], references: [id])
   schedule        Schedule      @relation(fields: [scheduleId], references: [id])
+
+  @@unique([roomId, date, scheduleId])
+  @@index([date, scheduleId])
 }
